@@ -1,0 +1,7 @@
+node_modules/
+dist/
+snapx-site-assets/
+SNAPX_SITE_MASTER_PROMPT.md
+BUILD_TODO.md
+.vite/
+*.log

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changelog · SnapX</title>
+  <meta name="description" content="Every SnapX release, newest first, from the first dust effect to the 1.4.0 popup redesign.">
+  <link rel="canonical" href="{{SITE_URL}}/changelog.html">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SnapX">
+  <meta property="og:title" content="Changelog · SnapX">
+  <meta property="og:description" content="Every SnapX release, newest first, from the first dust effect to the 1.4.0 popup redesign.">
+  <meta property="og:url" content="{{SITE_URL}}/changelog.html">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Changelog · SnapX">
+  <meta name="twitter:description" content="Every SnapX release, newest first, from the first dust effect to the 1.4.0 popup redesign.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">CHANGELOG</p>
+      <h1 class="display">What changed.</h1>
+      <p class="page-head__meta body muted">Every release, newest first.</p>
+    </div>
+  </header>
+
+  <div class="container changelog">
+    <div class="timeline">
+      <article class="release release--latest" id="v1-4-0">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.4.0</h2>
+        </div>
+        <p class="release__notes">New look. A redesigned popup in Paper &amp; Vermilion with Effect, Controls, Room and About tabs, a new logo and icons, a hidden-time timer, and a clearer HD status when your computer has no GPU.</p>
+      </article>
+
+      <article class="release" id="v1-3-3">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.3.3</h2>
+        </div>
+        <p class="release__notes">Fixed a faint coloured ghost on bright, overexposed walls. The rebuilt room now matches the camera even when the wall is blown out to white.</p>
+      </article>
+
+      <article class="release" id="v1-3-2">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.3.2</h2>
+        </div>
+        <p class="release__notes">Smooth video on laptops without GPU acceleration, because the AI runs in the background instead of holding frames back. HD runs only on a GPU (WebGPU), and the popup says why when it can't. Auto no longer loads the HD model on machines that can't use it. Fixed grain measurement on denoised webcams.</p>
+      </article>
+
+      <article class="release" id="v1-3-1">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.3.1</h2>
+        </div>
+        <p class="release__notes">No more see-through ghost while hidden: holes inside your outline are closed and the cover holds longer. Ghost lock: the learned room can't absorb your shirt or shoulders. The rebuilt area wears your camera's own grain. Cutout changes apply instantly. Added Copy diagnostics.</p>
+      </article>
+
+      <article class="release" id="v1-3-0">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.3.0</h2>
+        </div>
+        <p class="release__notes">Learn room in 3 seconds. Exposure tracking. HD person cutout (MODNet) on capable GPUs. GPU room rebuild. Smarter "camera moved" detection. Security hardening.</p>
+      </article>
+
+      <article class="release" id="v1-2-2">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.2.2</h2>
+        </div>
+        <p class="release__notes">X video calls are supported. The room learned with nobody in view is kept for good. SnapX relearns the room if the camera moves.</p>
+      </article>
+
+      <article class="release" id="v1-2-1">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.2.1</h2>
+        </div>
+        <p class="release__notes">Remembers your room per site and camera. Room learning ignores webcam brightness changes. Removed "Hold camera brightness".</p>
+      </article>
+
+      <article class="release" id="v1-2-0">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.2</h2>
+        </div>
+        <p class="release__notes">Live colour matching, soft edge blending, shadow catch, edge snapping, halo clean-up.</p>
+      </article>
+
+      <article class="release" id="v1-1-0">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.1</h2>
+        </div>
+        <p class="release__notes">Ghost fix while learning, fists and raised hands stay hidden, better snap detection.</p>
+      </article>
+
+      <article class="release" id="v1-0-0">
+        <div class="release__meta">
+          <span class="release__dot" aria-hidden="true"></span>
+          <h2 class="release__version">1.0</h2>
+        </div>
+        <p class="release__notes">First release. Snap to dust on Meet, Teams and Zoom.</p>
+      </article>
+    </div>
+
+    <section class="roadmap-block" aria-labelledby="roadmap-title">
+      <p class="eyebrow">WHAT'S NEXT</p>
+      <h2 class="h2" id="roadmap-title">Roadmap</h2>
+      <ul class="roadmap">
+        <li class="roadmap__item"><span>New vanish styles</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Snap-back animations</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Sound packs</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Wave &amp; double-snap gestures</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Floating mini controls</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Rounded cutouts</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Timed vanish</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>"Be right back" freeze-frame</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Teleport</span><span class="roadmap__status mono">Planned</span></li>
+        <li class="roadmap__item"><span>Chrome Web Store</span><span class="roadmap__status mono">Planned</span></li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

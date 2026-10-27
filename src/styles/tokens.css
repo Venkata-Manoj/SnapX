@@ -1,0 +1,73 @@
+:root {
+  /* Palette — the whole palette. */
+  --paper: #f5f2ec;
+  --paper-deep: #e9e4da;
+  --card: #ffffff;
+  --sunk: #efeae1;
+  --line: #e2dbcf;
+  --ink: #1e1b17;
+  --ink-2: #3a352f;
+  --muted: #6b6359;
+  --ver: #c8432a;
+  --ver-text: #b23a23;
+  --ver-on-ink: #e8735a;
+  --ver-dk: #a9361f;
+  --green: #2f5d45;
+  --amber: #b7791f;
+  --on-ink: #f5f2ec;
+  --on-ink-mut: #a39b90;
+
+  /* Type */
+  --font-serif: 'Instrument Serif', 'Instrument Serif Fallback', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Instrument Sans', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Mono Fallback', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --space-11: 160px;
+  --container: 1200px;
+  --gutter: 24px;
+  --section-y: 72px;
+  --header-h: 64px;
+
+  /* Radius */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(30, 27, 23, 0.06), 0 1px 1px rgba(30, 27, 23, 0.04);
+  --shadow-lg: 0 30px 60px -24px rgba(30, 27, 23, 0.25), 0 12px 24px -12px rgba(30, 27, 23, 0.12);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 160ms;
+  --dur-2: 320ms;
+  --dur-3: 600ms;
+  --dur-4: 900ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 40px;
+    --section-y: 96px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --section-y: 128px;
+  }
+}

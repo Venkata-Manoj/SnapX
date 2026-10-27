@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy policy · SnapX</title>
+  <meta name="description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
+  <link rel="canonical" href="{{SITE_URL}}/privacy.html">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SnapX">
+  <meta property="og:title" content="Privacy policy · SnapX">
+  <meta property="og:description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
+  <meta property="og:url" content="{{SITE_URL}}/privacy.html">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Privacy policy · SnapX">
+  <meta name="twitter:description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">PRIVACY</p>
+      <h1 class="display">Privacy policy</h1>
+      <p class="page-head__meta mono muted">Effective {{PRIVACY_EFFECTIVE_DATE}}</p>
+    </div>
+  </header>
+
+  <div class="container prose-wrap">
+    <div class="prose">
+      <h2>Summary</h2>
+      <p>SnapX processes your camera and microphone only on your computer, inside Chrome, to detect snaps and hide you on video calls. It does not collect, store on any server, sell or share personal data.</p>
+
+      <h2>What it processes, and where</h2>
+      <p>Camera frames and mic audio are processed in memory on your device for snap detection, person cutout, room rebuild and the dust effect. Nothing is uploaded.</p>
+
+      <h2>What it stores on your device</h2>
+      <p>Your settings are saved with <code>chrome.storage</code>, along with a learned picture of your room for each site and camera, so it can start faster next time. You can clear the room at any time in the popup: Room → Forget room. Removing the extension deletes everything.</p>
+
+      <h2>Network</h2>
+      <p>The extension makes no network requests. AI models are bundled inside the extension.</p>
+
+      <h2>Permissions explained</h2>
+      <p><code>storage</code> saves your settings. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Microsoft Teams, Zoom and X call pages, where SnapX provides its processed camera.</p>
+
+      <h2>Diagnostics</h2>
+      <p>"Copy diagnostics" copies technical details — versions, settings, frame rate and error messages, never images or audio — to your clipboard. It's only shared if you choose to send it.</p>
+
+      <h2>This website</h2>
+      <p>{{ANALYTICS_SENTENCE}}</p>
+
+      <h2>Children</h2>
+      <p>SnapX is not directed at children under 13.</p>
+
+      <h2>Changes</h2>
+      <p>Updates will be posted on this page with a new effective date.</p>
+
+      <h2>Contact</h2>
+      <p><a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a></p>
+    </div>
+  </div>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

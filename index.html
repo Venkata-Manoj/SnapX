@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SnapX: snap your fingers and vanish on video calls</title>
+  <meta name="description" content="A free Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes. Everything runs on your computer.">
+  <link rel="canonical" href="{{SITE_URL}}/">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SnapX">
+  <meta property="og:title" content="SnapX: snap your fingers and vanish on video calls">
+  <meta property="og:description" content="A free Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes. Everything runs on your computer.">
+  <meta property="og:url" content="{{SITE_URL}}/">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SnapX: snap your fingers and vanish on video calls">
+  <meta name="twitter:description" content="A free Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSans-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SnapX",
+    "applicationCategory": "BrowserApplication",
+    "operatingSystem": "Windows, macOS, Linux, ChromeOS (Google Chrome 116+)",
+    "softwareVersion": "1.4.0",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Snap your fingers on a video call and turn to dust. Your mic mutes. Runs entirely on your computer.",
+    "url": "{{SITE_URL}}/",
+    "downloadUrl": "{{DOWNLOAD_URL}}",
+    "author": { "@type": "Person", "name": "B V Manoj" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Is it really free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. SnapX is free and open source." } },
+      { "@type": "Question", "name": "Does it record or upload anything?", "acceptedAnswer": { "@type": "Answer", "text": "No. Everything runs on your computer and SnapX makes no network requests." } },
+      { "@type": "Question", "name": "Will other people see a glitch or an outline?", "acceptedAnswer": { "@type": "Answer", "text": "In good light with a learned room, they see your empty room. Busy backgrounds can look softer where you were. Learning the room once makes the biggest difference." } },
+      { "@type": "Question", "name": "Do I need a GPU?", "acceptedAnswer": { "@type": "Answer", "text": "No. Fast mode works on any computer. HD mode, with cleaner hair and edges, needs a GPU." } },
+      { "@type": "Question", "name": "Does it work in the Zoom, Teams or Meet desktop apps?", "acceptedAnswer": { "@type": "Answer", "text": "Not yet. SnapX works in Chrome on the web versions." } },
+      { "@type": "Question", "name": "Does my mic really mute?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. While you're hidden, the audio SnapX passes to the call is silent. It can also press the meeting's own mute button so others see you as muted." } },
+      { "@type": "Question", "name": "What if I snap by accident?", "acceptedAnswer": { "@type": "Answer", "text": "Lower the sensitivity in the Controls tab and keep the click-sound check on. Snap again to come back." } },
+      { "@type": "Question", "name": "Can I use a shortcut instead of snapping?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Press Alt+Shift+S, or change the shortcut at chrome://extensions/shortcuts." } },
+      { "@type": "Question", "name": "Is it on the Chrome Web Store?", "acceptedAnswer": { "@type": "Answer", "text": "Coming soon. For now, install it manually in two minutes." } },
+      { "@type": "Question", "name": "Is it okay to use in meetings?", "acceptedAnswer": { "@type": "Answer", "text": "It's made for fun and quick breaks. Use it kindly, and don't use it to fake attendance." } }
+    ]
+  }
+  </script>
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <!-- 6.1 Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow">CHROME EXTENSION · FREE · RUNS ON YOUR COMPUTER</p>
+        <h1 class="display" id="hero-title">Snap to vanish.<br><em>Snap</em> to return.</h1>
+        <p class="lead">Snap your fingers on a video call and you turn to dust. Everyone sees the empty room behind you, and your mic mutes. Snap again and you're back.</p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="#install">Get SnapX</a>
+          <a class="btn btn--secondary" href="#how">See how it works</a>
+        </div>
+        <p class="hero__meta mono muted"><span class="hero__meta-line">v1.4.0 · Chrome 116+</span><span class="hero__meta-sep" aria-hidden="true"> · </span><span class="hero__meta-line">Meet · Teams · Zoom · X</span></p>
+      </div>
+
+      <div class="hero__media">
+        <div class="call-tile" data-hero>
+          <canvas class="call-canvas" data-dissolve width="1280" height="800" role="img" aria-label="A person sits in a warm room, snaps their fingers and dissolves into particles, leaving the empty room, then reassembles."></canvas>
+
+          <div class="call-ui" aria-hidden="true">
+            <span class="call-pill" data-call-pill>
+              <span class="call-dot" data-call-dot></span>
+              <span data-call-state>On camera</span>
+            </span>
+
+            <div class="call-bar">
+              <span class="call-name">Manoj</span>
+              <div class="call-buttons">
+                <span class="call-btn" data-call-mic>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false">
+                    <rect x="9" y="3" width="6" height="11" rx="3"/>
+                    <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/>
+                  </svg>
+                  <svg class="call-slash" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true" focusable="false">
+                    <path d="M4 4l16 16"/>
+                  </svg>
+                </span>
+                <span class="call-btn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <rect x="3" y="6" width="12" height="12" rx="3"/>
+                    <path d="M15 11l6-3v8l-6-3z"/>
+                  </svg>
+                </span>
+                <span class="call-btn call-btn--leave">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M4 14c4-4 12-4 16 0l-2 3-4-2v-2c-2-1-4-1-6 0v2l-4 2z"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="call-tools">
+            <button class="call-tool call-tool--pause" type="button" data-hero-toggle aria-label="Pause the snap animation" aria-pressed="false">
+              <svg class="icon-pause" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true" focusable="false"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>
+              <svg class="icon-play" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 5.5v13l11-6.5z"/></svg>
+            </button>
+            <button class="call-tool call-tool--replay" type="button" data-hero-replay aria-label="Replay the snap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 5v5h5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.2 Trust strip -->
+  <section class="trust" aria-label="Why SnapX">
+    <div class="container">
+      <ul class="trust__row">
+        <li class="trust__item">
+          <span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <div><strong class="trust__label">On-device</strong><span class="trust__text">No video or audio leaves your computer</span></div>
+        </li>
+        <li class="trust__item">
+          <span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <div><strong class="trust__label">Free &amp; open source</strong><span class="trust__text">Read every line on GitHub</span></div>
+        </li>
+        <li class="trust__item">
+          <span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <div><strong class="trust__label">No account</strong><span class="trust__text">Install and snap</span></div>
+        </li>
+        <li class="trust__item">
+          <span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <div><strong class="trust__label">Works on the web apps</strong><span class="trust__text">Meet, Teams, Zoom, X</span></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 6.3 How it works -->
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">HOW IT WORKS</p>
+        <h2 class="h2" id="how-title" data-wipe>Three steps. One snap.</h2>
+      </div>
+
+      <ol class="steps" data-reveal-stagger>
+        <li class="step">
+          <div class="step__top">
+            <span class="step__num mono">01</span>
+            <div class="step__art" aria-hidden="true">
+              <svg viewBox="0 0 160 120" width="160" height="120" class="ill ill--learn" focusable="false">
+                <rect x="14" y="14" width="132" height="82" rx="8" fill="#EFEAE1" stroke="#E2DBCF" stroke-width="1.5"/>
+                <rect x="28" y="30" width="32" height="24" fill="#E8E2D6"/>
+                <path d="M28 27v30M44 30v24" stroke="#D9D1C4" stroke-width="1.5"/>
+                <path d="M24 84h112" stroke="#D9D1C4" stroke-width="2"/>
+                <g class="ill-figure">
+                  <circle cx="98" cy="46" r="9" fill="#1E1B17"/>
+                  <path d="M79 84c0-14 8.5-23 19-23s19 9 19 23z" fill="#1E1B17"/>
+                </g>
+                <rect class="ill-scan" x="22" y="18" width="2" height="74" fill="#C8432A" opacity="0.55"/>
+                <rect x="24" y="104" width="112" height="4" rx="2" fill="#E2DBCF"/>
+                <rect class="ill-progress" x="24" y="104" width="0" height="4" rx="2" fill="#2F5D45"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="h3">Learn your room</h3>
+          <p class="body">Click Learn room and step out of view for 3 seconds. SnapX remembers what's behind you, and on-device AI fills in any spot you always cover.</p>
+        </li>
+
+        <li class="step">
+          <div class="step__top">
+            <span class="step__num mono">02</span>
+            <div class="step__art" aria-hidden="true">
+              <svg viewBox="0 0 160 120" width="160" height="120" class="ill ill--snap" focusable="false">
+                <rect x="14" y="14" width="132" height="92" rx="8" fill="#EFEAE1" stroke="#E2DBCF" stroke-width="1.5"/>
+                <g class="ill-thumb">
+                  <rect x="46" y="64" width="17" height="34" rx="8.5" fill="#1E1B17" transform="rotate(-18 54 81)"/>
+                </g>
+                <g class="ill-finger">
+                  <rect x="72" y="38" width="16" height="50" rx="8" fill="#1E1B17" transform="rotate(12 80 63)"/>
+                </g>
+                <g class="ill-burst" stroke="#C8432A" stroke-width="2.4" stroke-linecap="round">
+                  <path d="M92 46l9-7"/><path d="M95 55l11-2"/><path d="M91 36l4-9"/>
+                </g>
+                <g class="ill-dust" fill="#1E1B17">
+                  <rect x="102" y="30" width="4" height="4"/><rect x="114" y="40" width="3" height="3" opacity="0.8"/>
+                  <rect x="122" y="28" width="5" height="5" opacity="0.65"/><rect x="128" y="48" width="3" height="3" opacity="0.5"/>
+                  <rect x="108" y="52" width="3" height="3" opacity="0.6"/><rect x="120" y="60" width="4" height="4" opacity="0.45"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <h3 class="h3">Snap</h3>
+          <p class="body">Snap your fingers where the camera can see your hand. You break into thousands of particles and drift away. Your mic mutes.</p>
+        </li>
+
+        <li class="step">
+          <div class="step__top">
+            <span class="step__num mono">03</span>
+            <div class="step__art" aria-hidden="true">
+              <svg viewBox="0 0 160 120" width="160" height="120" class="ill ill--back" focusable="false">
+                <rect x="14" y="14" width="132" height="92" rx="8" fill="#EFEAE1" stroke="#E2DBCF" stroke-width="1.5"/>
+                <g class="ill-person">
+                  <circle cx="72" cy="48" r="10" fill="#1E1B17"/>
+                  <path d="M51 88c0-16 9.5-26 21-26s21 10 21 26z" fill="#1E1B17"/>
+                </g>
+                <g class="ill-return" fill="#1E1B17">
+                  <rect x="106" y="30" width="4" height="4"/><rect x="120" y="42" width="3" height="3"/>
+                  <rect x="112" y="56" width="4" height="4"/><rect x="126" y="66" width="3" height="3"/>
+                  <rect x="104" y="72" width="3" height="3"/>
+                </g>
+                <g class="ill-mic" stroke="#1E1B17" stroke-width="1.6" fill="none" stroke-linecap="round">
+                  <rect x="116" y="82" width="7" height="11" rx="3.5"/>
+                  <path d="M112 89a8 8 0 0 0 15 0M119.5 97v5"/>
+                  <path class="ill-mic-slash" d="M111 82l17 17" stroke="#C8432A"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <h3 class="h3">Snap back</h3>
+          <p class="body">Snap again and the dust flies back into you. Your mic unmutes, unless you were already muted.</p>
+        </li>
+      </ol>
+
+      <p class="steps__note small muted" data-reveal>No hand free? Press <kbd>Alt</kbd> <kbd>Shift</kbd> <kbd>S</kbd> or click Vanish now in the popup.</p>
+    </div>
+  </section>
+
+  <!-- 6.4 Works where you meet -->
+  <section class="section section--platforms" id="platforms" aria-labelledby="platforms-title">
+    <div class="container">
+      <div class="section-head section-head--split" data-reveal>
+        <div>
+          <p class="eyebrow">WORKS WHERE YOU MEET</p>
+          <h2 class="h2" id="platforms-title" data-wipe>Your call app, untouched.</h2>
+        </div>
+        <p class="body section-head__aside">SnapX hands your call a processed copy of your camera, so it works inside the call apps you already use in Chrome. No plugins, no virtual camera, no new app.</p>
+      </div>
+
+      <ul class="platforms" data-reveal-stagger>
+        <li class="platform">
+          <span class="platform__name">Google Meet</span>
+          <span class="platform__domains mono muted">meet.google.com</span>
+        </li>
+        <li class="platform">
+          <span class="platform__name">Microsoft Teams</span>
+          <span class="platform__domains mono muted">teams.microsoft.com · teams.live.com</span>
+        </li>
+        <li class="platform">
+          <span class="platform__name">Zoom</span>
+          <span class="platform__domains mono muted">web client · app.zoom.us</span>
+        </li>
+        <li class="platform">
+          <span class="platform__name">X</span>
+          <span class="platform__domains mono muted">video calls in Messages</span>
+        </li>
+      </ul>
+
+      <p class="platforms__note small muted">Chrome on desktop only. The Meet, Teams and Zoom desktop and phone apps aren't supported.</p>
+    </div>
+  </section>
+
+  <!-- 6.5 The popup -->
+  <section class="section" id="popup" aria-labelledby="popup-title">
+    <div class="container popup-grid">
+      <div class="popup-stage-wrap" data-reveal>
+        <div class="popup-stage" data-popup-stage tabindex="0" aria-label="Popup screenshots. Focus or hover to bring the other state forward.">
+          <figure class="popup-shot popup-shot--back" data-popup-shot="hidden">
+            <picture>
+              <source srcset="@@BASE@@img/popup-hidden.avif" type="image/avif">
+              <source srcset="@@BASE@@img/popup-hidden.webp" type="image/webp">
+              <img src="@@BASE@@img/popup-hidden.png" width="340" height="585" alt="The SnapX popup while hidden, with the hidden-time timer running." loading="lazy" decoding="async">
+            </picture>
+          </figure>
+          <figure class="popup-shot popup-shot--front" data-popup-shot="camera">
+            <picture>
+              <source srcset="@@BASE@@img/popup-on-camera.avif" type="image/avif">
+              <source srcset="@@BASE@@img/popup-on-camera.webp" type="image/webp">
+              <img src="@@BASE@@img/popup-on-camera.png" width="340" height="585" alt="The SnapX popup on a call, showing the Effect, Controls, Room and About tabs." loading="lazy" decoding="async">
+            </picture>
+          </figure>
+        </div>
+
+        <div class="tabs popup-tabs" role="group" aria-label="Popup state">
+          <button class="tab" type="button" aria-pressed="true" data-popup-tab="camera">On camera</button>
+          <button class="tab" type="button" aria-pressed="false" data-popup-tab="hidden">Hidden</button>
+        </div>
+      </div>
+
+      <div class="popup-copy" data-reveal>
+        <p class="eyebrow">THE CONTROLS</p>
+        <h2 class="h2" id="popup-title">Everything in one small panel.</h2>
+
+        <dl class="feature-list">
+          <div class="feature">
+            <dt>Effect</dt>
+            <dd>Choose duration (1–6 s) and direction: left, right, up or a swirling wind.</dd>
+          </div>
+          <div class="feature">
+            <dt>Controls</dt>
+            <dd>Snap sensitivity, the click-sound check, and whether to press the meeting's own mute button.</dd>
+          </div>
+          <div class="feature">
+            <dt>Room</dt>
+            <dd>Learn the room in 3 seconds, see how much is learned, or start fresh.</dd>
+          </div>
+          <div class="feature">
+            <dt>Person cutout</dt>
+            <dd>Auto, HD (needs a GPU) or Fast (any computer).</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.6 Privacy -->
+  <section class="section" id="privacy" aria-labelledby="privacy-title">
+    <div class="container">
+      <div class="privacy-card" data-reveal>
+        <div class="privacy-top">
+          <div class="privacy-zero">
+            <span class="privacy-zero__num">0</span>
+            <span class="privacy-zero__label mono">bytes of your video sent anywhere</span>
+          </div>
+          <div class="privacy-intro">
+            <p class="eyebrow">PRIVACY</p>
+            <h2 class="h2" id="privacy-title" data-wipe>Private by design.</h2>
+          </div>
+        </div>
+
+        <div class="privacy-cols" data-reveal-stagger>
+          <div class="privacy-col">
+            <h3 class="h3">Runs on your computer</h3>
+            <p class="body">Hand tracking, person cutout and room rebuild all run locally in Chrome.</p>
+          </div>
+          <div class="privacy-col">
+            <h3 class="h3">No network requests</h3>
+            <p class="body">SnapX doesn't phone home. No accounts, no analytics, no uploads.</p>
+          </div>
+          <div class="privacy-col">
+            <h3 class="h3">Minimal permissions</h3>
+            <p class="body">Storage for your settings, and an offscreen page to run the AI. It only runs on the call sites it supports.</p>
+          </div>
+        </div>
+
+        <a class="link-arrow" href="@@BASE@@privacy.html">Read the privacy policy
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.7 Effects -->
+  <section class="section" id="effects" aria-labelledby="effects-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">EFFECTS</p>
+        <h2 class="h2" id="effects-title" data-wipe>Dust today. More on the way.</h2>
+      </div>
+
+      <ul class="effects" data-reveal-stagger tabindex="0" aria-label="Effect previews">
+        <li class="effect">
+          <div class="effect__frame"><canvas class="effect__canvas" data-effect="dust" width="240" height="300" role="img" aria-label="Preview: a silhouette breaks into particles that drift away on the wind."></canvas></div>
+          <div class="effect__meta"><h3 class="effect__name">Dust</h3><span class="badge badge--available">Available</span></div>
+          <p class="effect__copy small muted">Thousands of particles drift away on the wind.</p>
+        </li>
+        <li class="effect effect--soon">
+          <div class="effect__frame"><canvas class="effect__canvas" data-effect="ember" width="240" height="300" role="img" aria-label="Preview: a silhouette burns away into glowing sparks rising upward."></canvas></div>
+          <div class="effect__meta"><h3 class="effect__name">Ember</h3><span class="badge badge--soon">Coming soon</span></div>
+          <p class="effect__copy small muted">Burn away into glowing sparks.</p>
+        </li>
+        <li class="effect effect--soon">
+          <div class="effect__frame"><canvas class="effect__canvas" data-effect="glitch" width="240" height="300" role="img" aria-label="Preview: a silhouette breaks into horizontal scan lines and static."></canvas></div>
+          <div class="effect__meta"><h3 class="effect__name">Glitch</h3><span class="badge badge--soon">Coming soon</span></div>
+          <p class="effect__copy small muted">Break up into scan lines and static.</p>
+        </li>
+        <li class="effect effect--soon">
+          <div class="effect__frame"><canvas class="effect__canvas" data-effect="portal" width="240" height="300" role="img" aria-label="Preview: a dashed vermilion ring opens and a silhouette steps through it."></canvas></div>
+          <div class="effect__meta"><h3 class="effect__name">Portal</h3><span class="badge badge--soon">Coming soon</span></div>
+          <p class="effect__copy small muted">Step through a ring and you're gone.</p>
+        </li>
+        <li class="effect effect--soon">
+          <div class="effect__frame"><canvas class="effect__canvas" data-effect="fade" width="240" height="300" role="img" aria-label="Preview: a silhouette fades quietly into the empty room."></canvas></div>
+          <div class="effect__meta"><h3 class="effect__name">Fade</h3><span class="badge badge--soon">Coming soon</span></div>
+          <p class="effect__copy small muted">A quiet, slow fade to the empty room.</p>
+        </li>
+      </ul>
+
+      <p class="effects__vote body">Want one sooner? <a class="link-arrow" href="{{GITHUB_URL}}/discussions">Vote on GitHub
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </a></p>
+    </div>
+  </section>
+
+  <!-- 6.8 Under the hood -->
+  <section class="section section--ink on-ink" id="under-the-hood" aria-labelledby="hood-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">UNDER THE HOOD</p>
+        <h2 class="h2" id="hood-title" data-wipe>Built like a camera pipeline, not a filter.</h2>
+      </div>
+
+      <div class="hood-grid" data-reveal-stagger>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">SNAP DETECTION</h3>
+          <p>The camera sees thumb and middle finger snap together, and the mic hears the click at the same moment.</p>
+        </div>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">PERSON CUTOUT</h3>
+          <p>On-device segmentation (MediaPipe). HD uses MODNet on your GPU for cleaner hair and edges.</p>
+        </div>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">ROOM LEARNING</h3>
+          <p>Every pixel you don't cover builds a picture of the room. AI inpainting (MI-GAN) fills the rest.</p>
+        </div>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">COLOUR MATCH</h3>
+          <p>The rebuilt room is re-coloured every frame to your webcam's exposure and white balance, so no ghost is left.</p>
+        </div>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">DUST</h3>
+          <p>A WebGL effect splits you into about 26,000 particles.</p>
+        </div>
+        <div class="hood-cell">
+          <h3 class="hood-label mono">AUDIO</h3>
+          <p>While you're hidden, the audio sent to the call is silent, even if the meeting's own button can't be found.</p>
+        </div>
+      </div>
+
+      <a class="link link--ink hood-link" href="{{GITHUB_URL}}" target="_blank" rel="noopener">Read the source on GitHub
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        <span class="visually-hidden">(opens in a new tab)</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 6.9 Install -->
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">INSTALL</p>
+        <h2 class="h2" id="install-title" data-wipe>Two minutes, start to snap.</h2>
+      </div>
+
+      <div class="install-grid">
+        <div class="install-main">
+          <p class="note-badge" data-reveal>Chrome Web Store listing coming soon. Until then, install it manually. It's safe and takes two minutes.</p>
+
+          <div class="install-download" data-reveal>
+            <a class="btn btn--primary" href="{{DOWNLOAD_URL}}">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+              Download SnapX v1.4.0 (.zip)
+            </a>
+            <p class="mono muted">About 51 MB · includes the on-device AI models</p>
+          </div>
+
+          <ol class="stepper" data-reveal-stagger>
+            <li class="step-item">
+              <span class="step-item__num mono">01</span>
+              <div class="step-item__body">
+                <h3 class="h3">Unzip it.</h3>
+                <p class="body">Unzip the file. You get a folder with manifest.json inside.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-item__num mono">02</span>
+              <div class="step-item__body">
+                <h3 class="h3">Open extensions.</h3>
+                <p class="body">In Chrome, go to <span class="inline-code mono">chrome://extensions</span>
+                  <button class="copy-btn" type="button" data-copy="chrome://extensions" aria-label="Copy chrome://extensions">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a2 2 0 0 0-2 2v9"/></svg>
+                    <span data-copy-label>Copy</span>
+                  </button>
+                </p>
+                <p class="step-item__note small muted">Paste it in the address bar. Chrome doesn't allow links to this page.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-item__num mono">03</span>
+              <div class="step-item__body">
+                <h3 class="h3">Turn on Developer mode.</h3>
+                <p class="body">Top-right switch.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-item__num mono">04</span>
+              <div class="step-item__body">
+                <h3 class="h3">Load unpacked.</h3>
+                <p class="body">Click Load unpacked and choose the folder that contains manifest.json.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-item__num mono">05</span>
+              <div class="step-item__body">
+                <h3 class="h3">Pin it.</h3>
+                <p class="body">Click the puzzle icon in the toolbar, then the pin next to SnapX.</p>
+              </div>
+            </li>
+            <li class="step-item">
+              <span class="step-item__num mono">06</span>
+              <div class="step-item__body">
+                <h3 class="h3">Reload your call tab.</h3>
+                <p class="body">If Meet, Teams, Zoom or X was already open, reload it.</p>
+              </div>
+            </li>
+          </ol>
+
+          <p class="callout" data-reveal>Seeing "Manifest file is missing or unreadable"? You picked the outer folder. Choose the folder that has manifest.json directly inside.</p>
+          <p class="visually-hidden" aria-live="polite" data-copy-status></p>
+        </div>
+
+        <div class="install-side">
+          <div class="card" data-reveal>
+            <h3 class="h3">System requirements</h3>
+            <ul class="spark-list">
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Chrome 116 or newer, on Windows, macOS, Linux or ChromeOS</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>A webcam, and a microphone for the snap-sound check (optional)</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Fast cutout works on any computer</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>HD cutout needs a GPU with graphics acceleration on (chrome://settings/system → "Use graphics acceleration when available")</span></li>
+            </ul>
+          </div>
+
+          <div class="card" data-reveal>
+            <h3 class="h3">First-use tips</h3>
+            <ul class="spark-list">
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Learn your room once: click Learn room, then step fully out of view for 3 seconds.</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Plain walls and steady light give the cleanest result.</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Keep the camera still. If you move it, SnapX relearns the room.</span></li>
+              <li><span class="spark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>Snap a little away from your face. Side-on snaps work too.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.10 Troubleshooting -->
+  <section class="section section--help" id="help" aria-labelledby="help-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">HELP</p>
+        <h2 class="h2" id="help-title" data-wipe>If something's off.</h2>
+      </div>
+
+      <div class="help-list" data-help data-reveal>
+        <details class="help-row">
+          <summary><span class="help-q">Popup says "Not on a call tab"</span></summary>
+          <div class="help-a"><p>Open Meet, Teams, Zoom or X in Chrome and reload the tab.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">"Waiting for your camera"</span></summary>
+          <div class="help-a"><p>Turn your camera off and on in the meeting.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">Snaps are missed</span></summary>
+          <div class="help-a"><p>Keep your hand in view, a little away from your face. Raise sensitivity, or turn off the click-sound check if your mic is quiet.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">You vanish by accident</span></summary>
+          <div class="help-a"><p>Lower the sensitivity and keep the click-sound check on.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">A faint outline where you sat</span></summary>
+          <div class="help-a"><p>Open the Room tab, click Learn room, and step out for 3 seconds. Plain walls work best.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">HD is crossed out</span></summary>
+          <div class="help-a"><p>Your computer has no GPU path (WebGPU). Fast is used automatically. Try turning on graphics acceleration in chrome://settings/system.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">Video is slow</span></summary>
+          <div class="help-a"><p>Turn on graphics acceleration in chrome://settings/system and relaunch Chrome.</p></div>
+        </details>
+        <details class="help-row">
+          <summary><span class="help-q">Mic button didn't turn red</span></summary>
+          <div class="help-a"><p>The meeting may have changed its layout. SnapX still silences your audio itself.</p></div>
+        </details>
+      </div>
+
+      <div class="help-foot" data-reveal>
+        <p class="body">Still stuck? Open the SnapX popup → About → Copy diagnostics, and send it to us.</p>
+        <div class="help-foot__links">
+          <a class="link" href="{{GITHUB_URL}}/issues/new" target="_blank" rel="noopener">Open an issue<span class="visually-hidden"> (opens in a new tab)</span></a>
+          <a class="link" href="mailto:{{CONTACT_EMAIL}}">Email</a>
+        </div>
+        <p class="small muted">Diagnostics contain technical details only, never images or audio.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.11 FAQ -->
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="container faq-grid">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">FAQ</p>
+        <h2 class="h2" id="faq-title" data-wipe>Questions, answered.</h2>
+      </div>
+
+      <div class="faq-list" data-reveal>
+        <details>
+          <summary><span class="faq-q">Is it really free?</span></summary>
+          <div class="faq-a"><p>Yes. SnapX is free and open source.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Does it record or upload anything?</span></summary>
+          <div class="faq-a"><p>No. Everything runs on your computer and SnapX makes no network requests.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Will other people see a glitch or an outline?</span></summary>
+          <div class="faq-a"><p>In good light with a learned room, they see your empty room. Busy backgrounds can look softer where you were. Learning the room once makes the biggest difference.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Do I need a GPU?</span></summary>
+          <div class="faq-a"><p>No. Fast mode works on any computer. HD mode, with cleaner hair and edges, needs a GPU.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Does it work in the Zoom, Teams or Meet desktop apps?</span></summary>
+          <div class="faq-a"><p>Not yet. SnapX works in Chrome on the web versions.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Does my mic really mute?</span></summary>
+          <div class="faq-a"><p>Yes. While you're hidden, the audio SnapX passes to the call is silent. It can also press the meeting's own mute button so others see you as muted.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">What if I snap by accident?</span></summary>
+          <div class="faq-a"><p>Lower the sensitivity in the Controls tab and keep the click-sound check on. Snap again to come back.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Can I use a shortcut instead of snapping?</span></summary>
+          <div class="faq-a"><p>Yes. Press Alt+Shift+S, or change the shortcut at chrome://extensions/shortcuts.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Is it on the Chrome Web Store?</span></summary>
+          <div class="faq-a"><p>Coming soon. For now, install it manually in two minutes.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Is it okay to use in meetings?</span></summary>
+          <div class="faq-a"><p>It's made for fun and quick breaks. Use it kindly, and don't use it to fake attendance.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6.12 Roadmap -->
+  <section class="section section--roadmap" id="roadmap" aria-labelledby="roadmap-title">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">WHAT'S NEXT</p>
+        <h2 class="h2" id="roadmap-title" data-wipe>Coming to SnapX.</h2>
+      </div>
+
+      <ul class="roadmap" data-reveal-stagger>
+        <li class="roadmap__item roadmap__item--next"><span class="roadmap__dot" aria-hidden="true"></span>New vanish styles</li>
+        <li class="roadmap__item">Snap-back animations</li>
+        <li class="roadmap__item">Sound packs</li>
+        <li class="roadmap__item">Wave &amp; double-snap gestures</li>
+        <li class="roadmap__item">Floating mini controls</li>
+        <li class="roadmap__item">Rounded cutouts</li>
+        <li class="roadmap__item">Timed vanish</li>
+        <li class="roadmap__item">"Be right back" freeze-frame</li>
+        <li class="roadmap__item">Teleport</li>
+        <li class="roadmap__item">Chrome Web Store</li>
+      </ul>
+
+      <div class="updates" data-reveal>
+        <p class="updates__text">Get a heads-up when new effects land.</p>
+        <a class="btn btn--primary" href="{{GITHUB_URL}}" target="_blank" rel="noopener">Watch on GitHub
+          <span class="visually-hidden">(opens in a new tab)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
