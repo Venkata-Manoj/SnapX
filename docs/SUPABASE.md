@@ -19,10 +19,10 @@ the site is static and has no server to protect it.
 
 Supabase → Authentication → URL Configuration:
 
-- **Site URL**: the production origin, e.g. `https://snapx.example.com`
+- **Site URL**: `https://snap-x-beta.vercel.app`
 - **Redirect URLs**, one per origin:
   - `http://localhost:5173/auth/callback.html`
-  - `https://<production-domain>/auth/callback.html`
+  - `https://snap-x-beta.vercel.app/auth/callback.html`
   - `https://*-<vercel-team-slug>.vercel.app/auth/callback.html` for previews
 
 The OAuth flow returns to `/auth/callback.html?next=…`; `next` must stay a
