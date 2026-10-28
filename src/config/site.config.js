@@ -56,7 +56,7 @@ export const SITE = {
   VERSION: '1.4.0',
   CHROME_MIN_VERSION: '116',
   PAYMENT_PROVIDER: 'Razorpay',
-  EMAIL_PROVIDER_NAME: 'Supabase Auth', // change if you move to Resend/Postmark
+  EMAIL_PROVIDER_NAME: 'Resend',
   REFUND_WINDOW_DAYS: '7',
   COPYRIGHT_YEAR: '2026',
 
