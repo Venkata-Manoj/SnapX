@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sign in · {{BRAND_NAME}}</title>
-  <meta name="description" content="Sign in to {{BRAND_NAME}} with Google or a six-digit email code. An account is only needed for a paid plan.">
+  <meta name="description" content="Sign in to {{BRAND_NAME}} with Google or an eight-digit email code. An account is only needed for a paid plan.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#F5F2EC">
 
@@ -74,22 +74,24 @@
             <div class="field">
               <label for="login-email">Email address</label>
               <input id="login-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" required aria-describedby="login-email-hint">
-              <p class="field-hint" id="login-email-hint">We'll send a six-digit code. No password needed.</p>
+              <p class="field-hint" id="login-email-hint">We'll send an eight-digit code. No password needed.</p>
             </div>
             <button class="btn btn--primary btn--wide" type="submit" data-send-code>Email me a code</button>
           </form>
 
           <form data-code-form hidden>
-            <p class="auth-sub auth-sub--left">We sent a six-digit code to <strong data-code-email></strong>. It's single-use and expires after a short while.</p>
+            <p class="auth-sub auth-sub--left">We sent an eight-digit code to <strong data-code-email></strong>. It's single-use and expires after a short while.</p>
             <fieldset class="code-fieldset">
-              <legend>Six-digit code</legend>
+              <legend>Eight-digit code</legend>
               <div class="code-boxes" data-code-boxes>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1 of 6" data-code-box>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 2 of 6" data-code-box>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 3 of 6" data-code-box>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 4 of 6" data-code-box>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 5 of 6" data-code-box>
-                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 6 of 6" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 2 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 3 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 4 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 5 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 6 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 7 of 8" data-code-box>
+                <input class="code-box" type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 8 of 8" data-code-box>
               </div>
             </fieldset>
             <button class="btn btn--primary btn--wide" type="submit" data-verify-code>Verify and sign in</button>

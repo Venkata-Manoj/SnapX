@@ -1,6 +1,6 @@
 # Supabase setup
 
-The site uses Supabase only for accounts: Google sign-in, six-digit email
+The site uses Supabase only for accounts: Google sign-in, eight-digit email
 codes, and reading the signed-in user's plan. Media never goes near it.
 
 The browser bundle gets two values, both safe to expose:
@@ -48,15 +48,19 @@ flag in `src/config/site.config.js`. Microsoft uses the `azure` provider with
 the `email` scope, as the login code expects.
 
 **Email** — enable the Email provider. Sign-in uses `signInWithOtp` followed by
-`verifyOtp({ type: 'email' })`, so the email template must contain the token:
+`verifyOtp({ type: 'email' })`, so the email template must contain the token.
+Set **Email OTP Length** to **8** in Authentication → Providers → Email; the
+form renders eight boxes and rejects any other length. If you change that
+setting, change `CODE_LENGTH` in `src/js/login.js` and the number of inputs in
+`login.html` together.
 
 ```html
 <h2>Your SnapX code</h2>
-<p>Enter this six-digit code: <strong>{{ .Token }}</strong></p>
+<p>Enter this eight-digit code: <strong>{{ .Token }}</strong></p>
 <p>If you didn't ask for it, ignore this email.</p>
 ```
 
-Without `{{ .Token }}`, Supabase sends a magic link and the six-box form has
+Without `{{ .Token }}`, Supabase sends a magic link and the eight-box form has
 nothing to verify. Set a sensible OTP expiry in Authentication → Providers →
 Email. The site says the code is single-use and expires after a short while,
 so keep that wording true.

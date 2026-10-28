@@ -188,7 +188,7 @@
   font-weight: 500;
 }
 
-/* ---------- Six-digit code ---------- */
+/* ---------- Eight-digit code ---------- */
 
 .code-fieldset {
   margin: 0 0 var(--space-4);
@@ -206,7 +206,8 @@
 }
 
 .code-boxes {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -232,14 +233,21 @@
   border-color: var(--ver);
 }
 
-@media (max-width: 380px) {
+/* Eight digits do not fit one row on a phone; four per row stays legible. */
+@media (max-width: 460px) {
   .code-boxes {
-    gap: 5px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .code-box {
     height: 52px;
     font-size: 20px;
+  }
+}
+
+@media (max-width: 380px) {
+  .code-boxes {
+    gap: 6px;
   }
 }
 

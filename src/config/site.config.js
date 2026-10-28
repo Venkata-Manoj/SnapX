@@ -13,7 +13,7 @@ export const SITE = {
   /* ---------- Brand ---------- */
   BRAND_NAME: 'SnapX',
   TAGLINE: 'Snap to vanish. Snap to return.',
-  SITE_URL: 'https://snapx.example.com', // FILL: final origin, no trailing slash
+  SITE_URL: 'https://snap-x-beta.vercel.app', // final origin, no trailing slash
   SITE_DESCRIPTION:
     'A Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes. Everything runs on your computer.',
 

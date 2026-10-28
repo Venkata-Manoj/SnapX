@@ -41,7 +41,7 @@ the line disappears.
 | `SHOW_MANUAL_DOWNLOAD` | Shows the manual-install disclosure under the install button. |
 | `AUTH_ENABLED` | Renders sign-in in the header and the auth pages. |
 | `AUTH_GOOGLE` / `AUTH_MICROSOFT` / `AUTH_APPLE` | Each provider button. Microsoft uses the Supabase `azure` provider. |
-| `AUTH_EMAIL` | Six-digit email-code form. |
+| `AUTH_EMAIL` | Eight-digit email-code form. |
 | `PAYMENTS_ENABLED` | `false`: paid CTAs are disabled with "Payments open soon". Part B turns this on. |
 
 Flags are read by `<!-- @if FLAG --> … <!-- @endif -->` and

@@ -12,6 +12,8 @@ const boxes = [...document.querySelectorAll('[data-code-box]')];
 const resendButton = document.querySelector('[data-resend]');
 const changeButton = document.querySelector('[data-change-email]');
 
+const CODE_LENGTH = 8;
+
 const params = new URLSearchParams(window.location.search);
 const next = safeNext(params.get('next'), appUrl('account.html'));
 
@@ -155,9 +157,9 @@ codeForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const token = boxes.map((box) => box.value).join('');
 
-  if (token.length !== 6) {
+  if (token.length !== CODE_LENGTH) {
     markCodeInvalid(true);
-    setStatus('Enter all six digits from the email.', 'error');
+    setStatus('Enter all eight digits from the email.', 'error');
     boxes.find((box) => !box.value)?.focus();
     return;
   }
@@ -231,7 +233,7 @@ boxes.forEach((box, index) => {
   });
 
   box.addEventListener('paste', (event) => {
-    const digits = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    const digits = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, CODE_LENGTH);
     if (!digits) return;
     event.preventDefault();
     digits.split('').forEach((digit, offset) => {
