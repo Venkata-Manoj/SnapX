@@ -10,24 +10,25 @@ them at build time, so a rename never means editing pages.
 | `src/config/plans.config.js` | Plans, prices, tax line, launch offer |
 | `src/config/pricing.render.js` | Build-time pricing card renderer (no browser JS) |
 
-## Fill before launch
+## Values and current status
 
 `npm run build` prints a warning naming every value that still looks like a
-placeholder. Replace these in `site.config.js`:
+placeholder. The values below are the launch-critical set:
 
 | Value | Notes |
 |---|---|
-| `SITE_URL` | Final origin, no trailing slash. Drives canonical URLs, Open Graph, JSON-LD, sitemap and robots. |
-| `CONTACT_EMAIL` | General contact and the footer "Report a bug" link. |
-| `SUPPORT_EMAIL` | Support contact in the Terms and Contact pages. |
-| `BILLING_EMAIL` | Refunds and billing in the Refund Policy and account page. |
-| `PRIVACY_EMAIL` | Data-rights requests. |
-| `GRIEVANCE_EMAIL` | DPDP grievance officer address. |
-| `POSTAL_ADDRESS` | Required by Razorpay and for the legal pages. |
-| `DOWNLOAD_URL` | Release zip. Leave empty while the Chrome Web Store listing is the install path. |
-| `GITHUB_URL` / `GITHUB_PROFILE_URL` | Empty until the repository is public. |
-| `PRESS_KIT_URL` | Empty until a press kit exists. |
-| `CHROME_STORE_URL` | Empty until the listing is live. |
+| `SITE_URL` | Set to `https://snap-x-beta.vercel.app`. Drives canonical URLs, Open Graph, JSON-LD, sitemap and robots. |
+| `CONTACT_EMAIL` | Set to `call.snapx@gmail.com`; general contact and the footer "Report a bug" link. |
+| `SUPPORT_EMAIL` | Set to `call.snapx@gmail.com`; Terms and Contact pages. |
+| `BILLING_EMAIL` | Set to `call.snapx@gmail.com`; Refund Policy and account page. |
+| `PRIVACY_EMAIL` | Set to `call.snapx@gmail.com`; data-rights requests. |
+| `GRIEVANCE_EMAIL` | Set to `call.snapx@gmail.com`; DPDP grievance officer address. |
+| `POSTAL_ADDRESS` | Still required by Razorpay and the legal pages. |
+| `DOWNLOAD_URL` | Leave empty; there is no zip download. |
+| `GITHUB_URL` | Leave empty; repository links stay hidden. |
+| `GITHUB_PROFILE_URL` | Set to `https://github.com/Venkata-Manoj/`; footer maker link. |
+| `PRESS_KIT_URL` | Empty until a press kit exists after release. |
+| `CHROME_STORE_URL` | Empty until the Chrome Web Store listing is live. |
 
 `PHONE` is optional: set it and the Contact page renders it; leave it empty and
 the line disappears.
@@ -36,7 +37,7 @@ the line disappears.
 
 | Flag | What it does |
 |---|---|
-| `SHOW_GITHUB` | Shows GitHub links only when a URL is also set. |
+| `SHOW_GITHUB` | Shows the public profile link; repository links appear only when `GITHUB_URL` is also set. |
 | `SHOW_PRESS_KIT` | Shows the footer press-kit link only when a URL is also set. |
 | `SHOW_MANUAL_DOWNLOAD` | Shows the manual-install disclosure under the install button. |
 | `AUTH_ENABLED` | Renders sign-in in the header and the auth pages. |
@@ -77,5 +78,5 @@ add them while `PAYMENTS_ENABLED` is false.
 
 `base` comes from `BASE_PATH` (default `/`). Asset and internal URLs use the
 resolved base, so a project site under `/repo/` works without edits. The
-GitHub Actions workflow still carries a `{{BASE_PATH}}` placeholder that the
-owner must replace (or delete, if Vercel is the only target).
+GitHub Actions workflow is manual-only and derives the base from the repository
+name; Vercel is the production target.

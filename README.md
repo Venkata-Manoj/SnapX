@@ -89,9 +89,12 @@ Production and Preview. `vercel.json` supplies `cleanUrls`, the security
 headers and the CSP. There is deliberately no rewrite to `index.html`, so
 unknown paths get the real `404.html`.
 
-**GitHub Pages (legacy).** `.github/workflows/deploy.yml` still deploys to
-Pages. It carries a `{{BASE_PATH}}` placeholder the owner must replace with `/`
-or `/<repo>/`; the build gate will fail until then. Vercel does not use it.
+**GitHub Pages (legacy).** Vercel is the only automatic deploy. The manual
+`.github/workflows/deploy.yml` workflow builds with the repository name as its
+base path, so it no longer carries a placeholder. Run it from Actions → Deploy
+site (GitHub Pages, legacy) → Run workflow. It requires Pages to be enabled
+first (Settings → Pages → Source: GitHub Actions); Pages for a private
+repository needs a paid GitHub plan.
 
 ## Verification
 

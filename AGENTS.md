@@ -40,9 +40,10 @@ npm run check:placeholders
   Unknown tokens and flags fail the build. Full list: `docs/CONFIG.md`.
 - `npm run check:placeholders` fails on any surviving `{{TOKEN}}` or `@@BASE@@`
   in `dist/`. Do not weaken it or add a literal token to make a build pass.
-- Empty URLs remove their element; they never leave a dead link. `SITE_URL`,
-  emails and the postal address default to `example.com` / "to be added" and
-  trigger a build warning until the owner fills them.
+- Empty URLs remove their element; they never leave a dead link. The postal
+  address still defaults to "to be added" and triggers a build warning until the
+  owner fills it; optional download, store and press links stay empty until
+  release.
 - Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` belong in the
   browser bundle. Never add a secret or service-role key to `.env`, Vercel or
   any `src/` file. `.env` is git-ignored.
@@ -77,8 +78,8 @@ npm run check:placeholders
   No emoji in UI.
 - **Focus rings are never removed** — use the §4.5 ring. `prefers-reduced-motion`
   removes motion, not just shortens it.
-- **Legal pages are drafts, not legal advice.** Their source starts with a
-  "NOT LEGAL ADVICE" comment. Do not present them as reviewed.
+- **Legal pages are owner-approved** as of 28 October 2026; their source
+  comments record that. They remain general information, not legal advice.
 
 ## Auth and security
 

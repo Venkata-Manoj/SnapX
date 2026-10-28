@@ -18,10 +18,10 @@ export const SITE = {
     'A Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes. Everything runs on your computer.',
 
   /* ---------- Contact ---------- */
-  CONTACT_EMAIL: 'hello@snapx.example.com', // FILL
-  SUPPORT_EMAIL: 'support@snapx.example.com', // FILL
-  BILLING_EMAIL: 'billing@snapx.example.com', // FILL
-  PRIVACY_EMAIL: 'privacy@snapx.example.com', // FILL
+  CONTACT_EMAIL: 'call.snapx@gmail.com',
+  SUPPORT_EMAIL: 'call.snapx@gmail.com',
+  BILLING_EMAIL: 'call.snapx@gmail.com',
+  PRIVACY_EMAIL: 'call.snapx@gmail.com',
 
   /* ---------- Business details (Razorpay / DPDP / Chrome Web Store) ---------- */
   OPERATOR_NAME: 'B V Manoj',
@@ -30,19 +30,19 @@ export const SITE = {
   POSTAL_ADDRESS: '[Postal address to be added before launch]', // FILL: required by Razorpay
   PHONE: '', // optional; rendered only when set
   GRIEVANCE_OFFICER_NAME: 'B V Manoj',
-  GRIEVANCE_EMAIL: 'grievance@snapx.example.com', // FILL
+  GRIEVANCE_EMAIL: 'call.snapx@gmail.com',
   SUPPORT_RESPONSE_TIME: '2 working days',
 
   /* ---------- Links ---------- */
-  GITHUB_URL: '', // FILL once the repository is public
-  GITHUB_PROFILE_URL: '', // FILL once public
-  DOWNLOAD_URL: '', // FILL: release zip, e.g. .../releases/latest/download/SnapX-v1.4.0.zip
-  PRESS_KIT_URL: '', // FILL: zip of logo + screenshots + short description
-  CHROME_STORE_URL: '', // FILL when the Chrome Web Store listing is live
+  GITHUB_URL: '', // no repository link; the public profile is used instead
+  GITHUB_PROFILE_URL: 'https://github.com/Venkata-Manoj/',
+  DOWNLOAD_URL: '', // no zip download; Chrome Web Store link to follow
+  PRESS_KIT_URL: '', // add after release
+  CHROME_STORE_URL: '', // add when the Chrome Web Store listing is live
   REPO_NAME: 'snapx-web',
 
   /* ---------- Feature flags ---------- */
-  SHOW_GITHUB: false, // repo is not public yet
+  SHOW_GITHUB: true, // shows the public profile link; repository links stay off
   SHOW_PRESS_KIT: false,
   SHOW_MANUAL_DOWNLOAD: true, // until the Chrome Web Store listing is live
   AUTH_ENABLED: true,
@@ -76,7 +76,6 @@ export const UNFILLED = [
   ['GRIEVANCE_EMAIL', SITE.GRIEVANCE_EMAIL],
   ['POSTAL_ADDRESS', SITE.POSTAL_ADDRESS],
   ['DOWNLOAD_URL', SITE.DOWNLOAD_URL],
-  ['GITHUB_URL', SITE.GITHUB_URL],
   ['GITHUB_PROFILE_URL', SITE.GITHUB_PROFILE_URL],
   ['PRESS_KIT_URL', SITE.PRESS_KIT_URL],
   ['CHROME_STORE_URL', SITE.CHROME_STORE_URL],

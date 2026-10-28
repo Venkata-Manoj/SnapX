@@ -98,13 +98,15 @@ headers).
 
 ## 5. Manual checks the owner must do
 
-These cannot be verified from the repo, because they need the owner's inbox and
-Google account:
+Verified on the live project on 28 October 2026:
 
-- [ ] Google sign-in on `localhost:5173` and on a Vercel preview URL.
-- [ ] Email code arrives, verifies, and the resend cooldown works.
+- [x] Google sign-in on the production URL.
+- [x] Eight-digit email code arrives, verifies, and Supabase redirects work.
+- [x] A brand-new account shows Free on `/account.html`.
+
+Still worth a quick check after any auth change:
+
 - [ ] Header switches to the avatar menu without a reload, and sign-out clears it.
-- [ ] A brand-new account shows Free on `/account.html`.
 - [ ] Wrong code, expired code and repeated sends show the friendly messages.
 - [ ] Deleting an account opens the mailto with the user ID (server-side delete
       arrives with Part B).

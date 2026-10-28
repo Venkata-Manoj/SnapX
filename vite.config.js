@@ -239,8 +239,8 @@ function configWarning() {
     buildStart() {
       if (!UNFILLED.length) return;
       this.warn(
-        `site.config.js still has placeholder values: ${UNFILLED.join(', ')}. ` +
-          'Replace them before launch (see docs/CONFIG.md).',
+        `site.config.js still has unfilled values: ${UNFILLED.join(', ')}. ` +
+          'Fill the required values before launch and the release links when they exist (see docs/CONFIG.md).',
       );
     },
   };
