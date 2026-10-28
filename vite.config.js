@@ -126,7 +126,7 @@ function brandHtml() {
 /** robots.txt, sitemap.xml and site.webmanifest are derived from the config. */
 function generatedFiles() {
   const files = (base) => {
-    const url = (path) => `${SITE.SITE_URL}${base}${path}`;
+    const url = (path) => `${SITE.SITE_URL}/${path}`;
     const pages = ['', 'pricing', 'privacy', 'terms', 'refund', 'contact', 'changelog'];
 
     return {
