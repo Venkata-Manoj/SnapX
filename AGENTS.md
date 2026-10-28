@@ -47,6 +47,19 @@ npm run check:placeholders
   browser bundle. Never add a secret or service-role key to `.env`, Vercel or
   any `src/` file. `.env` is git-ignored.
 
+## Git and commits
+
+- **Every commit in this repo uses the existing user credentials** — whatever
+  `git config user.name` and `git config user.email` already resolve to. Never
+  invent an identity, override it for one commit, or leave a placeholder author.
+- Never commit as `OpenCode <opencode@local>`, a harness name, or any other
+  machine identity. Check both values before committing. If a commit has
+  already landed with the wrong author, rewrite its authorship and force-push;
+  do not paper over it with `git revert`.
+- Credentials never belong in this file or anywhere tracked. GitHub auth is
+  handled by `gh` and the OS keyring; no token is read from, or stored in, the
+  repository.
+
 ## Rules agents break
 
 - **Palette is closed.** Only §4.1 tokens. No cyan, teal, purple or blue
