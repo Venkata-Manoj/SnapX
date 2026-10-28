@@ -1,13 +1,9 @@
-name: Deploy site (GitHub Pages mirror)
+name: Deploy site (GitHub Pages, legacy)
 
-# Vercel is the canonical production target. This workflow publishes the same
-# build to GitHub Pages at https://<owner>.github.io/<repo>/ as a secondary
-# mirror. The base path comes from the repository name, so no placeholder is
-# needed. Pages must be enabled once in Settings -> Pages -> Source: GitHub
-# Actions.
+# Vercel is the production target. This workflow is a manual fallback only.
+# Enable Pages first (Settings -> Pages -> Source: GitHub Actions); Pages for a
+# private repository needs a paid GitHub plan.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -33,9 +29,6 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
-          # The publishable key is designed for the browser; RLS enforces access.
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
