@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- NOT LEGAL ADVICE: contact and grievance details for review by a qualified lawyer before launch. This comment is not rendered. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact · {{BRAND_NAME}}</title>
+  <meta name="description" content="How to reach {{BRAND_NAME}} for support, billing, privacy or a grievance. We reply within {{SUPPORT_RESPONSE_TIME}}.">
+  <link rel="canonical" href="{{SITE_URL}}/contact">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{BRAND_NAME}}">
+  <meta property="og:title" content="Contact · {{BRAND_NAME}}">
+  <meta property="og:description" content="Support, billing, privacy and grievance contacts. We reply within {{SUPPORT_RESPONSE_TIME}}.">
+  <meta property="og:url" content="{{SITE_URL}}/contact">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Contact · {{BRAND_NAME}}">
+  <meta name="twitter:description" content="Support, billing, privacy and grievance contacts. We reply within {{SUPPORT_RESPONSE_TIME}}.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">CONTACT</p>
+      <h1 class="display">Talk to a person.</h1>
+      <p class="page-head__meta body muted">{{BRAND_NAME}} is run by one person, so replies are personal. We answer within {{SUPPORT_RESPONSE_TIME}}.</p>
+    </div>
+  </header>
+
+  <div class="container prose-wrap">
+    <div class="prose">
+      <h2>Email us</h2>
+      <p>Pick the address that fits, so your message reaches the right place:</p>
+      <ul>
+        <li><strong>Support</strong> — bugs, setup, the extension not working: <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a></li>
+        <li><strong>Billing</strong> — charges, refunds, cancelling: <a href="mailto:{{BILLING_EMAIL}}">{{BILLING_EMAIL}}</a></li>
+        <li><strong>Privacy</strong> — access, correction or deletion of your data: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a></li>
+        <li><strong>Everything else</strong> — press, partnerships, a hello: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a></li>
+      </ul>
+      <p>There is no contact form on this site, and no ticket system. Email is the whole support desk.</p>
+
+      <h2>Grievance officer</h2>
+      <p>Under India's Digital Personal Data Protection Act, 2023, we have a grievance officer for privacy complaints:</p>
+      <ul>
+        <li>{{GRIEVANCE_OFFICER_NAME}}</li>
+        <li><a href="mailto:{{GRIEVANCE_EMAIL}}">{{GRIEVANCE_EMAIL}}</a></li>
+        <li>{{OPERATOR_NAME}}, {{CITY}}</li>
+      </ul>
+      <p>We respond within {{SUPPORT_RESPONSE_TIME}}. If you are not satisfied with our response, you can complain to the Data Protection Board of India.</p>
+
+      <h2>Who we are</h2>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}.</p>
+      <p>Postal address:<br>{{POSTAL_ADDRESS}}</p>
+      <!-- @if PHONE -->
+      <p>Phone: {{PHONE}}</p>
+      <!-- @endif -->
+
+      <h2>Before you write</h2>
+      <p>For extension problems, the <a href="@@BASE@@index.html#help">troubleshooting section</a> covers the common fixes. If you still need help, the popup's "Copy diagnostics" button gives us versions, settings and error messages — never images or audio — and saves a round trip.</p>
+    </div>
+  </div>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

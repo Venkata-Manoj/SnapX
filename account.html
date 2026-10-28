@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your account · {{BRAND_NAME}}</title>
+  <meta name="description" content="Manage your {{BRAND_NAME}} account and plan.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top" data-base="@@BASE@@" data-contact-email="{{CONTACT_EMAIL}}">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">ACCOUNT</p>
+      <h1 class="display">Your account</h1>
+      <p class="page-head__meta body muted">Your plan, the extension connection, and the way out.</p>
+    </div>
+  </header>
+
+  <section class="account-section" aria-label="Account details">
+    <div class="container">
+      <div class="account-loading" data-account-loading>
+        <span class="account-loading__dot" aria-hidden="true"></span>
+        <p role="status">Checking your sign-in…</p>
+      </div>
+
+      <div class="account-grid" data-account-body hidden>
+        <div class="account-stack">
+          <article class="card account-card" aria-labelledby="identity-title">
+            <div class="account-id">
+              <span class="avatar avatar--lg" data-account-avatar aria-hidden="true"></span>
+              <div class="account-id__text">
+                <h2 class="h3" id="identity-title" data-account-name>Your account</h2>
+                <p class="account-id__email" data-account-email></p>
+              </div>
+            </div>
+            <dl class="fact-list">
+              <div class="fact-row">
+                <dt>Signed in with</dt>
+                <dd data-account-provider>—</dd>
+              </div>
+              <div class="fact-row">
+                <dt>Account ID</dt>
+                <dd class="mono small" data-account-id>—</dd>
+              </div>
+            </dl>
+            <div class="account-actions">
+              <button class="btn btn--secondary btn--compact" type="button" data-account-signout>Sign out</button>
+            </div>
+          </article>
+
+          <article class="card account-card danger-zone" aria-labelledby="danger-title">
+            <h2 class="h3" id="danger-title">Danger zone</h2>
+            <p class="small">Delete your account and plan data. We remove them within 30 days. Your Free plan and the extension keep working only while the account exists.</p>
+            <div class="account-actions">
+              <button class="btn btn--danger btn--compact" type="button" data-delete-open>Delete my account</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="account-stack">
+          <article class="card account-card" aria-labelledby="plan-title">
+            <div class="account-card__head">
+              <div>
+                <h2 class="h3" id="plan-title">Your plan</h2>
+                <p class="small muted" data-plan-summary>Free, forever.</p>
+              </div>
+              <span class="plan-badge" data-plan-badge>Free</span>
+            </div>
+            <dl class="fact-list">
+              <div class="fact-row">
+                <dt>Status</dt>
+                <dd data-plan-status>Active</dd>
+              </div>
+              <div class="fact-row" data-plan-date-row>
+                <dt data-plan-date-label>Renews on</dt>
+                <dd data-plan-date>—</dd>
+              </div>
+            </dl>
+            <div class="account-actions">
+              <a class="btn btn--primary btn--compact" href="@@BASE@@pricing.html">Upgrade</a>
+              <!-- @if PAYMENTS_ENABLED -->
+              <button class="btn btn--secondary btn--compact" type="button" data-manage>Manage / Cancel</button>
+              <!-- @endif -->
+              <!-- @ifnot PAYMENTS_ENABLED -->
+              <button class="btn btn--secondary btn--compact" type="button" disabled aria-describedby="manage-note">Manage / Cancel</button>
+              <p class="small muted" id="manage-note">Payments open soon. To change or cancel a plan before then, email <a class="link" href="mailto:{{BILLING_EMAIL}}">{{BILLING_EMAIL}}</a>.</p>
+              <!-- @endif -->
+            </div>
+          </article>
+
+          <article class="card account-card" aria-labelledby="extension-title">
+            <h2 class="h3" id="extension-title">Connect the extension</h2>
+            <p>Open the {{BRAND_NAME}} popup and click <strong>Sign in</strong>. It will bring you back here.</p>
+            <p class="small muted">The extension only checks your plan when you are signed in. Your video, audio and room pictures stay on your device.</p>
+          </article>
+        </div>
+      </div>
+
+      <p class="form-status" role="status" aria-live="polite" data-account-status></p>
+    </div>
+  </section>
+
+  <dialog class="confirm-dialog" data-delete-dialog aria-labelledby="delete-title">
+    <form method="dialog" class="confirm-dialog__body">
+      <h2 class="h3" id="delete-title">Delete your account?</h2>
+      <p>This removes your account, plan and sign-in. We do it within 30 days, and it cannot be undone.</p>
+      <div class="field">
+        <label for="delete-confirm">Type DELETE to confirm</label>
+        <input id="delete-confirm" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" data-delete-input>
+      </div>
+      <p class="form-status small" data-delete-status role="status" aria-live="polite"></p>
+      <div class="confirm-dialog__actions">
+        <button class="btn btn--secondary btn--compact" value="cancel">Keep my account</button>
+        <button class="btn btn--danger btn--compact" type="button" data-delete-confirm disabled>Delete my account</button>
+      </div>
+    </form>
+  </dialog>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+<script type="module" src="/src/js/account.js"></script>
+</body>
+</html>

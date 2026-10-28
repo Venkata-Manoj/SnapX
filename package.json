@@ -6,14 +6,18 @@
   "description": "The SnapX marketing site.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-placeholders.mjs",
     "preview": "vite preview",
     "images": "node scripts/images.mjs",
-    "check": "linkinator dist --recurse --silent --skip \".*%7B%7B.*\""
+    "check:placeholders": "node scripts/check-placeholders.mjs",
+    "check": "linkinator dist --recurse --silent --skip \"^(https?://(?!localhost|127\\.0\\.0\\.1)|mailto:)\""
   },
   "devDependencies": {
     "linkinator": "^6.1.2",
     "sharp": "^0.33.5",
     "vite": "^5.4.11"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0"
   }
 }

@@ -140,6 +140,10 @@ button {
   border: 0;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .skip-link {
   position: fixed;
   top: 12px;

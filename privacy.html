@@ -1,22 +1,23 @@
 <!doctype html>
+<!-- NOT LEGAL ADVICE: drafted from the product's actual data flows for review by a qualified lawyer before launch. This comment is not rendered. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy policy · SnapX</title>
-  <meta name="description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
-  <link rel="canonical" href="{{SITE_URL}}/privacy.html">
+  <title>Privacy policy · {{BRAND_NAME}}</title>
+  <meta name="description" content="How {{BRAND_NAME}} handles your data: camera and microphone stay on your device, and an account stores only what is needed to run your plan.">
+  <link rel="canonical" href="{{SITE_URL}}/privacy">
   <meta name="theme-color" content="#F5F2EC">
 
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="SnapX">
-  <meta property="og:title" content="Privacy policy · SnapX">
-  <meta property="og:description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
-  <meta property="og:url" content="{{SITE_URL}}/privacy.html">
+  <meta property="og:site_name" content="{{BRAND_NAME}}">
+  <meta property="og:title" content="Privacy policy · {{BRAND_NAME}}">
+  <meta property="og:description" content="Camera and microphone stay on your device. An account stores only what is needed to run your plan.">
+  <meta property="og:url" content="{{SITE_URL}}/privacy">
   <meta property="og:image" content="{{SITE_URL}}/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Privacy policy · SnapX">
-  <meta name="twitter:description" content="How SnapX processes your camera and microphone on your computer, what it stores on your device, and why it makes no network requests.">
+  <meta name="twitter:title" content="Privacy policy · {{BRAND_NAME}}">
+  <meta name="twitter:description" content="Camera and microphone stay on your device. An account stores only what is needed to run your plan.">
   <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
 
   <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
@@ -41,34 +42,85 @@
   <div class="container prose-wrap">
     <div class="prose">
       <h2>Summary</h2>
-      <p>SnapX processes your camera and microphone only on your computer, inside Chrome, to detect snaps and hide you on video calls. It does not collect, store on any server, sell or share personal data.</p>
+      <p>Your camera frames, microphone audio and room pictures are processed on your computer and never uploaded. If you create an account, we store only what is needed to sign you in, run your plan and take payment.</p>
+      <p>{{BRAND_NAME}} is a Chrome extension. The extension works without an account on the Free plan, and that use sends nothing to us.</p>
 
-      <h2>What it processes, and where</h2>
-      <p>Camera frames and mic audio are processed in memory on your device for snap detection, person cutout, room rebuild and the dust effect. Nothing is uploaded.</p>
+      <h2>The extension</h2>
+      <h3>On-device processing</h3>
+      <p>Camera frames and mic audio are processed in memory on your device for snap detection, person cutout, room rebuild and the Dust effect. Nothing is uploaded. The AI models are bundled inside the extension, so no server is involved.</p>
 
-      <h2>What it stores on your device</h2>
+      <h3>What it stores on your device</h3>
       <p>Your settings are saved with <code>chrome.storage</code>, along with a learned picture of your room for each site and camera, so it can start faster next time. You can clear the room at any time in the popup: Room → Forget room. Removing the extension deletes everything.</p>
 
-      <h2>Network</h2>
-      <p>The extension makes no network requests. AI models are bundled inside the extension.</p>
+      <h3>What it sends when you sign in</h3>
+      <p>If you sign in, the extension may contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> to check your plan and fetch a signed plan pass. It sends your account token for that check. It never sends video, audio or images. Signed out, the extension makes no network requests at all.</p>
 
-      <h2>Permissions explained</h2>
-      <p><code>storage</code> saves your settings. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Microsoft Teams, Zoom and X call pages, where SnapX provides its processed camera.</p>
+      <h2>Your account</h2>
+      <p>An account is optional. You need one to buy or manage a paid plan, or to connect the extension to your plan.</p>
+      <h3>What we collect</h3>
+      <ul>
+        <li>Your email address.</li>
+        <li>Your name and profile picture, if your sign-in provider shares them.</li>
+        <li>How you signed in — Google, Microsoft, Apple or an email code.</li>
+        <li>Your plan, subscription status, and the dates it started, renews or ends.</li>
+        <li>Payment IDs and dates for charges and refunds.</li>
+      </ul>
+      <h3>What we do not collect</h3>
+      <ul>
+        <li>Card, UPI or bank details. Our payment partner handles those, and we only receive the result: your plan, its status and payment IDs.</li>
+        <li>Your video, audio, room pictures, call content or contact lists.</li>
+      </ul>
 
-      <h2>Diagnostics</h2>
-      <p>"Copy diagnostics" copies technical details — versions, settings, frame rate and error messages, never images or audio — to your clipboard. It's only shared if you choose to send it.</p>
+      <h2>The website</h2>
+      <p>You can read every public page without an account. Our host keeps standard request logs — IP address, browser and time — for security and debugging, under its own retention policy. Sign-in on this site is handled by Supabase Auth.</p>
 
-      <h2>This website</h2>
-      <p>{{ANALYTICS_SENTENCE}}</p>
+      <h2>Who processes data</h2>
+      <p>We use a small set of processors. Each handles data under its own terms and privacy policy, and some process data outside India.</p>
+      <ul>
+        <li><strong>Supabase</strong> — database, sign-in and email codes.</li>
+        <li><strong>Vercel</strong> — website hosting and request logs.</li>
+        <li><strong>{{PAYMENT_PROVIDER}}</strong> — payments and refunds, once paid plans are on sale.</li>
+        <li><strong>{{EMAIL_PROVIDER_NAME}}</strong> — sign-in codes and billing emails.</li>
+        <li><strong>Google, Microsoft or Apple</strong> — only if you choose that sign-in method.</li>
+      </ul>
+      <p>We do not sell your data, and we do not share it for advertising.</p>
+
+      <h2>Why we process it, and on what basis</h2>
+      <ul>
+        <li>To create and secure your account, and to run your plan — with your consent when you sign in, and to perform our contract with you.</li>
+        <li>To take payments, issue refunds and keep tax records — to perform our contract and to meet legal obligations.</li>
+        <li>To answer support, privacy and grievance requests — with your consent, or because we have a legal duty to respond.</li>
+        <li>To keep the service and our users safe — our legitimate interest in preventing abuse and fraud.</li>
+      </ul>
+
+      <h2>Retention</h2>
+      <p>We keep account data until you delete your account, and remove it within 30 days of a verified request. Payment records are kept for as long as required by Indian tax law. Support emails are kept only as long as needed to resolve the request.</p>
+
+      <h2>Your rights under the DPDP Act</h2>
+      <p>Under India's Digital Personal Data Protection Act, 2023, you can ask to access, correct or erase your personal data, nominate someone to act for you, and raise a grievance about how your data is handled.</p>
+      <p>Email <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a> to exercise any of these rights. Our grievance officer is {{GRIEVANCE_OFFICER_NAME}}, reachable at <a href="mailto:{{GRIEVANCE_EMAIL}}">{{GRIEVANCE_EMAIL}}</a>. We respond within {{SUPPORT_RESPONSE_TIME}}. If you are not satisfied, you can complain to the Data Protection Board of India.</p>
+
+      <h2>Cookies and storage</h2>
+      <p>The website stores only your sign-in session in your browser, which is strictly necessary to keep you signed in. Signing out clears it. {{ANALYTICS_SENTENCE}}</p>
 
       <h2>Children</h2>
-      <p>SnapX is not directed at children under 13.</p>
+      <p>{{BRAND_NAME}} is not directed at children under 13. If you are under 18, you may buy a plan only with a parent's or guardian's consent, and they are responsible for the purchase.</p>
+
+      <h2>Security</h2>
+      <p>Data is encrypted in transit. Access to account and plan rows is limited by row-level security, so you can only read your own. We never hold card details. No system is perfectly secure, but we work to keep the data we hold small and access narrow.</p>
+
+      <h2>International users</h2>
+      <p>We operate from India. The processors listed above may store or process data in other countries. Where that happens, they do so under their own safeguards and terms.</p>
+
+      <h2>Permissions explained</h2>
+      <p><code>storage</code> saves your settings and room picture. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Microsoft Teams, Zoom and X call pages, where {{BRAND_NAME}} provides its processed camera. The extension may also contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> only to check your plan, and only when you are signed in.</p>
 
       <h2>Changes</h2>
-      <p>Updates will be posted on this page with a new effective date.</p>
+      <p>If this policy changes, we post the new version here with a new effective date. Material changes that affect your rights will be announced by email or on this page before they take effect.</p>
 
       <h2>Contact</h2>
-      <p><a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a></p>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}. Postal address: {{POSTAL_ADDRESS}}.</p>
+      <p>Privacy questions: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a>. General contact: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
     </div>
   </div>
 </main>

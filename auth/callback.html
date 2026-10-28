@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signing in · {{BRAND_NAME}}</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top" data-base="@@BASE@@">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <section class="auth-section">
+    <div class="container">
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <div class="auth-head">
+            <p class="eyebrow">ACCOUNT</p>
+            <h1 class="h2" data-callback-title>Signing you in…</h1>
+            <p class="auth-sub" data-callback-message>One moment while we finish the sign-in.</p>
+          </div>
+
+          <div class="account-loading" data-callback-loading>
+            <span class="account-loading__dot" aria-hidden="true"></span>
+            <p role="status">Talking to the sign-in service.</p>
+          </div>
+
+          <p class="form-status" role="status" aria-live="polite" data-callback-status></p>
+
+          <p class="auth-alt" data-callback-retry hidden><a href="@@BASE@@login.html">Try again</a></p>
+
+          <noscript>
+            <p class="auth-note">Signing in needs JavaScript. The Free plan does not: install the extension and start using it.</p>
+          </noscript>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+<script type="module" src="/src/js/auth-callback.js"></script>
+</body>
+</html>

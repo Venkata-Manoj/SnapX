@@ -1,45 +1,66 @@
-# Placeholders
+# Placeholders and unfilled values
 
-Every `{{TOKEN}}` below is deliberately left literal in the source and in `dist/`, as required by the build contract. Nothing is guessed. Replace them before pointing a domain at the site, then rebuild.
+The site no longer ships literal `{{TOKEN}}` placeholders. Tokens are resolved
+at build time from `src/config/site.config.js`, and `npm run check:placeholders`
+fails the build if any survive into `dist/`.
 
-`npm run check` skips links that begin with `{{` so the placeholder build still passes link checking. Once the tokens are replaced, the full link check runs too.
+Some config values are still deliberately fake or empty. The build prints a
+warning naming each one, and the site stays honest while they are unfilled:
+empty URLs remove their element or fall back to the install section.
 
-> `${{ steps.d.outputs.page_url }}` in `.github/workflows/deploy.yml` is GitHub Actions syntax, not a site placeholder. Do not replace it.
+## Fill before launch
 
-## Required
-
-| Token | Where it is used | Replace with |
+| Value | Where it appears | Replace with |
 |---|---|---|
-| `{{SITE_URL}}` | Canonical, Open Graph and Twitter URLs, JSON-LD `url`, `robots.txt`, `sitemap.xml` (home, privacy, changelog) | Final origin, no trailing slash, e.g. `https://snapx.example.com` |
-| `{{GITHUB_URL}}` | Header (desktop + mobile), footer Project column, "Read the source on GitHub", "Vote on GitHub", "Open an issue", "Watch on GitHub" | Repository URL, e.g. `https://github.com/<user>/snapx` |
-| `{{GITHUB_PROFILE_URL}}` | Footer maker link (B V Manoj) | Maker's GitHub profile |
-| `{{DOWNLOAD_URL}}` | Install button and JSON-LD `downloadUrl` | Release asset, e.g. `{{GITHUB_URL}}/releases/latest/download/SnapX-v1.4.0.zip` |
-| `{{CONTACT_EMAIL}}` | Footer Contact, help "Email", privacy Contact | Real contact address |
-| `{{PRESS_KIT_URL}}` | Footer Project → Press kit | Zip of `/logo` + `/screenshots` + a short description |
-| `{{PRIVACY_EFFECTIVE_DATE}}` | Privacy page, under the H1 | Date the policy takes effect |
-| `{{ANALYTICS_SENTENCE}}` | Privacy page → "This website" | See below |
-| `{{BASE_PATH}}` | `.github/workflows/deploy.yml`, `BASE_PATH` env for the build | `/` for a custom domain, `/repo-name/` for a project site |
+| `SITE_URL` | Canonical, Open Graph, Twitter, JSON-LD, sitemap, robots | Final origin, no trailing slash |
+| `CONTACT_EMAIL` | Footer bug report, Contact, legal pages | Real address |
+| `SUPPORT_EMAIL` | Terms, Refund, Contact, account | Real support address |
+| `BILLING_EMAIL` | Refund Policy, account page | Real billing address |
+| `PRIVACY_EMAIL` | Privacy rights section, Contact | Real privacy address |
+| `GRIEVANCE_EMAIL` | Privacy, Terms, Refund, Contact | Grievance officer address |
+| `POSTAL_ADDRESS` | Privacy, Terms, Contact | Real postal address (Razorpay requires it) |
+| `DOWNLOAD_URL` | Install section, JSON-LD `downloadUrl` | Release zip, or leave empty |
+| `GITHUB_URL` | Header, footer, home links, when `SHOW_GITHUB` is on | Repository URL |
+| `GITHUB_PROFILE_URL` | Footer maker link, when public | Profile URL |
+| `PRESS_KIT_URL` | Footer Project link, when `SHOW_PRESS_KIT` is on | Press-kit zip |
+| `CHROME_STORE_URL` | Install button, JSON-LD | Listing URL, when live |
 
-### `{{ANALYTICS_SENTENCE}}`
+`PHONE` is optional: set it and the Contact page shows it; leave it empty and
+the line disappears.
 
-The paragraph currently renders the token literally so it cannot be missed. Replace it with one of the two sentences from the contract (§9.7):
+## `.example.com` defaults
 
-- No analytics (default, and correct for this build): `This website uses no analytics and sets no cookies.`
-- Plausible enabled: `This website uses Plausible, a cookieless analytics tool that counts page views without collecting personal data.`
+`SITE_URL`, the four public email addresses and `GRIEVANCE_EMAIL` default to
+`example.com` so a missed value cannot accidentally point at a real domain.
+They are not secrets. Replace them all before launch.
 
-No analytics script is included. If you enable Plausible, add its script and set `{{PLAUSIBLE_DOMAIN}}` at the same time.
+## Empty URL flags
 
-## Optional or intentionally unused
+- `GITHUB_URL` empty + `SHOW_GITHUB: false` → every GitHub link is removed, not
+  left dead. `HAS_GITHUB`/`HAS_PROFILE` are derived, so flipping the flag alone
+  does nothing until a URL exists.
+- `PRESS_KIT_URL` empty + `SHOW_PRESS_KIT: false` → the footer Project column is
+  omitted entirely.
+- `DOWNLOAD_URL` empty → the install section shows the manual-install
+  disclosure instead of a zip link.
+- `CHROME_STORE_URL` empty → the install button scrolls to the install section.
 
-| Token | Status | Why |
-|---|---|---|
-| `{{DOMAIN}}` | Not used | No custom domain was supplied, so `public/CNAME` was not created. Add `public/CNAME` containing the domain if you use one. |
-| `{{REPO_NAME}}` | Not used | Folded into `{{BASE_PATH}}`, which the workflow reads once. |
-| `{{NEWSLETTER_FORM_URL}}` | Not used | Empty optional token means the newsletter form is omitted. "Watch on GitHub" remains the only updates action. |
-| `{{PLAUSIBLE_DOMAIN}}` | Not used | No analytics, per the privacy page and the no-tracker rule. |
-| `{{RELEASE_DATES}}` | Not used | Release dates were not supplied, and inventing them is forbidden. The changelog omits dates; add them per version when known. |
-| `{{HERO_VIDEO_ENABLED}}` | Not used | The code-built canvas is the default hero. No video files were generated or shipped. |
+## Environment
 
-## Note on Lighthouse SEO
+Only two variables are allowed in the browser bundle:
 
-With `{{SITE_URL}}` still literal, Lighthouse reports SEO 85: the canonical URL and the `Sitemap:` line in `robots.txt` are not valid URLs yet. A verification build with the tokens substituted scored SEO 100. Replace `{{SITE_URL}}` (and the other required tokens) before judging SEO.
+```dotenv
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+```
+
+`.env` is git-ignored; `.env.example` is committed. A secret or service-role
+key never belongs in either. Add the same two values in Vercel for Production
+and Preview.
+
+## The deploy workflow
+
+`.github/workflows/deploy.yml` still contains GitHub Actions' own
+`${{ steps.d.outputs.page_url }}` and a literal `{{BASE_PATH}}` build value.
+That one is not a site token: replace it with `/` or `/<repo>/`, or delete the
+workflow if Vercel is the only deploy target. Site tokens never appear there.

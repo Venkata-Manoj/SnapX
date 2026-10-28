@@ -107,17 +107,29 @@
   .primary-nav ul {
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 18px;
   }
 
   .primary-nav a {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--ink-2);
     padding-block: 8px;
     position: relative;
   }
+}
 
+@media (min-width: 1120px) {
+  .primary-nav ul {
+    gap: 28px;
+  }
+
+  .primary-nav a {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 860px) {
   .primary-nav a::after {
     content: '';
     position: absolute;
@@ -164,6 +176,139 @@
   .header-actions .btn {
     margin-left: var(--space-2);
   }
+}
+
+/* ---------- Header auth ---------- */
+
+.header-signin {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.header-signin:hover {
+  color: var(--ver-text);
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.user-btn:hover {
+  background: var(--paper-deep);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar--lg {
+  width: 56px;
+  height: 56px;
+  font-size: 22px;
+}
+
+.user-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 95;
+  min-width: 236px;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.user-panel__id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.user-panel__name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.user-panel__email {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.user-panel a,
+.user-panel button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--r-xs);
+  font-size: 15px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.user-panel a:hover,
+.user-panel button:hover {
+  background: var(--sunk);
+}
+
+.user-panel > :last-child {
+  color: var(--ver-text);
+  font-weight: 600;
+}
+
+.menu-sheet__signin,
+.menu-sheet__account {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .menu-btn {
@@ -294,31 +439,31 @@ body.is-locked {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
-  padding-block: var(--space-7);
+  padding-block: var(--space-7) 0;
 }
 
-@media (min-width: 560px) {
+@media (min-width: 420px) {
   .footer-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
-  }
-
-  .footer-note {
-    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 760px) {
   .footer-grid {
-    grid-template-columns: repeat(3, minmax(0, 0.7fr)) minmax(0, 1.2fr);
-    gap: var(--space-7);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
+}
 
-  .footer-note {
-    grid-column: auto;
-  }
+.footer-note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 78ch;
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px solid rgba(245, 242, 236, 0.12);
 }
 
 .footer-h {
@@ -352,10 +497,6 @@ body.is-locked {
   color: var(--ver-on-ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-}
-
-.footer-note p + p {
-  margin-top: var(--space-4);
 }
 
 .footer-kind {

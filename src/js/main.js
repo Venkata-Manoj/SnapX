@@ -52,4 +52,5 @@ initPopup();
 afterIdle(() => {
   initHero();
   initEffects();
+  import('./header-auth.js').then(({ initHeaderAuth }) => initHeaderAuth());
 });

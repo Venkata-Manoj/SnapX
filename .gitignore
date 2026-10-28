@@ -3,5 +3,9 @@ dist/
 snapx-site-assets/
 SNAPX_SITE_MASTER_PROMPT.md
 BUILD_TODO.md
+SITE_PHASE2_PROMPT.md
 .vite/
 *.log
+.env
+.env.local
+.playwright-mcp/

@@ -1,0 +1,83 @@
+<!doctype html>
+<!-- NOT LEGAL ADVICE: drafted from the planned Razorpay subscription flow for review by a qualified lawyer before launch. This comment is not rendered. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cancellation &amp; Refund Policy · {{BRAND_NAME}}</title>
+  <meta name="description" content="How to cancel a {{BRAND_NAME}} plan, when the first payment is refundable, and how long a refund takes.">
+  <link rel="canonical" href="{{SITE_URL}}/refund">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{BRAND_NAME}}">
+  <meta property="og:title" content="Cancellation &amp; Refund Policy · {{BRAND_NAME}}">
+  <meta property="og:description" content="How to cancel, when the first payment is refundable, and how long a refund takes.">
+  <meta property="og:url" content="{{SITE_URL}}/refund">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cancellation &amp; Refund Policy · {{BRAND_NAME}}">
+  <meta name="twitter:description" content="How to cancel, when the first payment is refundable, and how long a refund takes.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">LEGAL</p>
+      <h1 class="display">Cancellation &amp; Refund Policy</h1>
+      <p class="page-head__meta mono muted">Effective {{LEGAL_EFFECTIVE_DATE}}</p>
+    </div>
+  </header>
+
+  <div class="container prose-wrap">
+    <div class="prose">
+      <h2>Cancel anytime</h2>
+      <p>You can cancel from your <a href="@@BASE@@account.html">account page</a> whenever you like. Your plan stays active until the end of the period you have paid for, and you are not charged again. Free needs no cancellation and costs nothing.</p>
+      <!-- @ifnot PAYMENTS_ENABLED -->
+      <p>Paid plans are not on sale yet. This policy applies from the day they are.</p>
+      <!-- @endif -->
+
+      <h2>First payment refund</h2>
+      <p>If you are not happy with a paid plan, ask for a refund of your <strong>first</strong> payment within {{REFUND_WINDOW_DAYS}} days of the charge. We refund it in full. This is a goodwill policy on top of any rights you have under Indian consumer law.</p>
+
+      <h2>Renewals</h2>
+      <p>Renewal payments are not refundable, except when:</p>
+      <ul>
+        <li>you were charged twice for the same period (a duplicate charge); or</li>
+        <li>a technical failure on our side stopped the paid features from working, we could not fix it, and you tell us before the next renewal.</li>
+      </ul>
+      <p>Cancelling stops future charges. It does not refund a renewal that has already been taken, unless one of the exceptions above applies.</p>
+
+      <h2>How to request a refund</h2>
+      <p>Email <a href="mailto:{{BILLING_EMAIL}}">{{BILLING_EMAIL}}</a> from the address on your account, with your payment ID from the {{PAYMENT_PROVIDER}} receipt. We reply within {{SUPPORT_RESPONSE_TIME}}. If you do not have the payment ID, send the date and amount and we will find it.</p>
+
+      <h2>How refunds are paid</h2>
+      <p>Approved refunds go back to the original payment method through {{PAYMENT_PROVIDER}}. They typically arrive within 5–7 working days, though the exact time depends on your bank or payment app. We cannot refund to a different card, UPI ID or bank account.</p>
+
+      <h2>Chargebacks</h2>
+      <p>Please contact us before raising a chargeback. It is usually faster for you, and it lets us fix the cause. We may suspend an account while a chargeback is investigated.</p>
+
+      <h2>Free plan</h2>
+      <p>The Free plan costs nothing, so there is nothing to refund.</p>
+
+      <h2>Contact</h2>
+      <p>Billing questions: <a href="mailto:{{BILLING_EMAIL}}">{{BILLING_EMAIL}}</a>. General support: <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a>. Grievances: {{GRIEVANCE_OFFICER_NAME}}, <a href="mailto:{{GRIEVANCE_EMAIL}}">{{GRIEVANCE_EMAIL}}</a>.</p>
+    </div>
+  </div>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

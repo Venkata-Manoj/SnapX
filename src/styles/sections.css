@@ -261,9 +261,15 @@
   background: var(--paper);
 }
 
+/*
+ * Equal-height cells with a divider between every pair: the 1px grid gap shows
+ * the line colour, so no cell can lose its divider at a breakpoint.
+ */
 .trust__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
 }
 
 .trust__item {
@@ -271,11 +277,7 @@
   align-items: flex-start;
   gap: 12px;
   padding-block: 20px;
-  border-bottom: 1px solid var(--line);
-}
-
-.trust__item:last-child {
-  border-bottom: 0;
+  background: var(--paper);
 }
 
 .trust__item .spark {
@@ -305,20 +307,14 @@
 
   .trust__item {
     padding: 22px 24px;
-    border-bottom: 1px solid var(--line);
   }
 
   .trust__item:nth-child(odd) {
-    border-left: 0;
     padding-left: 0;
   }
 
   .trust__item:nth-child(even) {
-    border-left: 1px solid var(--line);
-  }
-
-  .trust__item:nth-last-child(-n + 2) {
-    border-bottom: 0;
+    padding-right: 0;
   }
 }
 
@@ -328,18 +324,19 @@
   }
 
   .trust__item {
-    border-bottom: 0;
-    border-left: 1px solid var(--line);
     padding: 24px;
   }
 
-  .trust__item:first-child {
-    border-left: 0;
-    padding-left: 0;
+  .trust__item:nth-child(odd) {
+    padding-left: 24px;
   }
 
-  .trust__item:nth-child(2) {
-    border-left: 1px solid var(--line);
+  .trust__item:nth-child(even) {
+    padding-right: 24px;
+  }
+
+  .trust__item:first-child {
+    padding-left: 0;
   }
 
   .trust__item:last-child {
@@ -1218,6 +1215,37 @@
   margin-top: 5px;
 }
 
+/* Manual install, shown as a disclosure once the store listing is live. */
+.manual {
+  padding-inline: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+.manual > summary {
+  padding-block: 18px;
+}
+
+.manual__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.manual__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-block: 2px var(--space-5);
+}
+
+/* Reveals never fire inside a closed disclosure, so show them outright. */
+.manual [data-reveal],
+.manual [data-reveal-stagger] > * {
+  opacity: 1;
+  transform: none;
+}
+
 /* ---------- 6.10 Help ---------- */
 
 .help-list {
@@ -1436,6 +1464,44 @@
 
 .prose h2:first-child {
   margin-top: 0;
+}
+
+.prose h3 {
+  margin-top: var(--space-5);
+  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.prose h2 + h3 {
+  margin-top: var(--space-3);
+}
+
+.prose ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 var(--space-4);
+  padding-left: 1.2em;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.prose li {
+  padding-left: 4px;
+}
+
+.prose li::marker {
+  color: var(--ver);
+}
+
+.prose li strong {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .prose p {

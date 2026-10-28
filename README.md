@@ -1,70 +1,103 @@
 # SnapX marketing site
 
-Static site for SnapX, a Chrome extension that turns you to dust on a video call and mutes your mic. Vite 5, vanilla HTML, CSS and ES modules. No runtime dependencies, no framework, no third-party requests.
+Static marketing site for SnapX, a Chrome extension that turns you to dust on a
+video call and mutes your mic. Vite 5, vanilla HTML, CSS and ES modules, plus
+Supabase for optional accounts. No framework and no third-party scripts.
 
-The build contract lives in `SNAPX_SITE_MASTER_PROMPT.md` (ignored by git). Product claims come only from §2 of that document.
+The build contract lives in `SNAPX_SITE_MASTER_PROMPT.md`; the phase 2
+additions (accounts, plans, legal, fixes) are specified in
+`SITE_PHASE2_PROMPT.md`, Part A. Product claims come only from the contract.
 
 ## Run it
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # dist/ — index, privacy, changelog, 404
-npm run preview    # serve dist/ (use this for Lighthouse)
-npm run check      # linkinator over dist/, after a build
-npm run images     # regenerate public/img + icons from snapx-site-assets/
+cp .env.example .env    # fill VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
+npm run dev             # http://localhost:5173
+npm run build           # dist/ + placeholder gate
+npm run preview         # serve dist/ (use this for Lighthouse)
+npm run check           # linkinator over dist/, after a build
+npm run check:placeholders
+npm run images          # regenerate public/img + icons from snapx-site-assets/
 ```
 
-Node 20+ (built and verified on Node 22.22.3, npm 10.9.8).
+Node 20+.
 
-`snapx-site-assets/` is the source pack and is not committed. `public/` is generated once and committed, so CI does not need the pack. Run `npm run images` only when the pack changes.
+`snapx-site-assets/` is the source pack and is not committed. `public/` is
+generated once and committed, so CI does not need the pack. Run `npm run images`
+only when the pack changes.
+
+## Configure
+
+All brand strings, URLs, emails, business details and feature flags live in
+[`src/config/site.config.js`](src/config/site.config.js). Plans and prices live
+in [`src/config/plans.config.js`](src/config/plans.config.js). HTML uses
+`{{TOKEN}}` placeholders and `<!-- @if FLAG -->` blocks; the Vite plugin resolves
+them at build time and fails on an unknown token or flag.
+
+- [`docs/CONFIG.md`](docs/CONFIG.md) — every value, flag and the list still to fill.
+- [`docs/SUPABASE.md`](docs/SUPABASE.md) — providers, redirect allowlist, email
+  code template, schema, RLS and manual checks.
+- [`supabase/schema.sql`](supabase/schema.sql) — idempotent tables, trigger and
+  policies.
+
+`npm run build` prints a warning for each value that still looks like a
+placeholder. `npm run check:placeholders` fails the build if any `{{TOKEN}}` or
+`@@BASE@@` survives into `dist/`.
 
 ## Structure
 
 ```
-index.html                 home, all 13 sections
-privacy.html               policy
+index.html                 home
+pricing.html               plans and billing FAQ
+privacy.html               policy for the extension, website and accounts
+terms.html                 Terms of Service
+refund.html                Cancellation & Refund Policy
+contact.html               support, grievance officer, postal address
 changelog.html             releases + roadmap
-404.html                   not found
-src/styles/                tokens, base, layout, components, sections, fonts
-src/js/                    main, nav, reveal, copy, faq, dissolve, effects
+login.html                 Google / email-code sign-in
+account.html               plan, extension connection, danger zone
+auth/callback.html         OAuth return
+404.html                   not found (no SPA rewrite)
+src/config/                brand, plans, build-time pricing renderer
+src/lib/                   Supabase client, safe-next and formatting helpers
+src/js/                    main, nav, reveal, copy, faq, dissolve, effects,
+                           header-auth, login, account, auth-callback
 src/partials/              header + footer, inlined at build time
-public/                    fonts, screenshots, icons, robots, sitemap, manifest
-scripts/images.mjs         sharp pipeline for AVIF/WebP screenshots and icons
-vite.config.js             BASE_PATH, multi-page inputs, @@BASE@@ rewriting
+src/styles/                tokens, base, layout, components, sections, pricing,
+                           forms, account, fonts
+public/                    fonts, screenshots, icons
+supabase/schema.sql        tables, trigger, RLS
+scripts/images.mjs         sharp pipeline for screenshots and icons
+scripts/check-placeholders.mjs  build gate
+vite.config.js             BASE_PATH, page inputs, config plugin, generated files
+vercel.json                clean URLs, security headers, CSP
 ```
 
-`<!-- @include header.html -->` is expanded by a tiny local Vite plugin. `@@BASE@@` is replaced with the resolved base path so internal links work on both `/` and `/repo/`.
+`<!-- @include header.html -->` is expanded by a local Vite plugin, followed by
+conditionals and token replacement. `@@BASE@@` is replaced with the resolved
+base path so internal links work on `/` and on a project sub-path.
 
-## Deploy (GitHub Pages)
+`robots.txt`, `sitemap.xml` and `site.webmanifest` are generated from the
+config; do not recreate them in `public/`.
 
-1. Replace the placeholders in [`PLACEHOLDERS.md`](PLACEHOLDERS.md). At minimum `{{SITE_URL}}`, `{{GITHUB_URL}}`, `{{DOWNLOAD_URL}}`, `{{CONTACT_EMAIL}}`, `{{PRIVACY_EFFECTIVE_DATE}}` and `{{ANALYTICS_SENTENCE}}`.
-2. Set `BASE_PATH` in `.github/workflows/deploy.yml`: `/` for a custom domain, `/repo-name/` for a project site. The value is currently the literal `{{BASE_PATH}}` token.
-3. Custom domain only: add `public/CNAME` with the domain.
-4. Host `SnapX-v1.4.0.zip` as a GitHub Release asset; point `{{DOWNLOAD_URL}}` at it. Do not commit the ~51 MB zip.
-5. In the repository: Settings → Pages → Source: **GitHub Actions**. Push to `main`.
-6. Run `npm run build && npm run check` locally first.
+## Deploy
 
-`BASE_PATH=/snapx/ npm run build` was verified: HTML links, icons, manifest and the font URLs in the bundled CSS all move under `/snapx/`.
+**Vercel (primary).** Import the repo, framework Vite, build `npm run build`,
+output `dist`. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to
+Production and Preview. `vercel.json` supplies `cleanUrls`, the security
+headers and the CSP. There is deliberately no rewrite to `index.html`, so
+unknown paths get the real `404.html`.
+
+**GitHub Pages (legacy).** `.github/workflows/deploy.yml` still deploys to
+Pages. It carries a `{{BASE_PATH}}` placeholder the owner must replace with `/`
+or `/<repo>/`; the build gate will fail until then. Vercel does not use it.
 
 ## Verification
 
-- `npm run build` and `npm run check`: pass (17 internal links, 0 broken).
-- 64-check Playwright suite: 64/64. Covers section copy, version count (exactly four `1.4.0` on home), Coming soon badges, hero animation, replay, off-screen pause, popup tabs, help table/accordion, copy button, fonts, touch targets, skip link, mobile menu, reduced motion, and no horizontal scroll from 360 px to 1920 px.
-- axe-core 4.10.2: 0 violations on all four pages at 1440 px and 390 px.
-- Lighthouse 12.8.2, mobile, on `vite preview`:
-  - untouched placeholder build: performance 97, accessibility 100, best practices 100, SEO 85 (invalid placeholder canonical + sitemap URL);
-  - with `{{SITE_URL}}` and the other URL tokens substituted in `dist/`: **97 / 100 / 100 / 100**.
-- Budgets: CSS 8.6 KB gzip (limit 25), JS 7.1 KB gzip (limit 35). Hero frame time p95 16.9 ms.
+Run `npm run build && npm run check` before judging a change. Lighthouse and
+axe are run on `npm run preview`, not the dev server. Canvases and
+`prefers-reduced-motion` need a manual look.
 
-## Deliberate deviations
-
-- **Screenshots are 1×, not 2×.** The supplied assets are 340×585; the contract says 2×. They are displayed at 340 CSS px with explicit `width`/`height`, in AVIF → WebP → PNG. No upscaling or invented imagery.
-- **No hero video.** `{{HERO_VIDEO_ENABLED}}` is unused; the code-built canvas is the hero, as the contract makes it the default.
-- **No newsletter form.** `{{NEWSLETTER_FORM_URL}}` is empty, so the optional form is omitted.
-- **No analytics, no CNAME.** `{{PLAUSIBLE_DOMAIN}}` is empty and no domain was supplied.
-- **Changelog dates omitted.** No dates were supplied and inventing them is forbidden; `{{RELEASE_DATES}}` is documented instead.
-- **`{{ANALYTICS_SENTENCE}}` stays literal** on the privacy page, per the "never substitute placeholders" rule. The exact default sentence is in `PLACEHOLDERS.md`.
-- **Reduced motion** shows a static render of the half-dissolved canvas, not a separate SVG poster. It is the same artwork, frozen.
-- **Hero pause control** is an addition (top-right, 36 px visual, 44 px hit area). §12 asks for a visible pause control; §6.1 only names Replay.
-- **Small structural labels** not quoted in §6: the "PRIVACY" eyebrow, the "FAQ" eyebrow and the FAQ heading "Questions, answered." They add no claims.
+The phase 2 acceptance checks and their current results are recorded in
+[`BUILD_TODO.md`](BUILD_TODO.md).

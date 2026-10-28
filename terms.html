@@ -1,0 +1,113 @@
+<!doctype html>
+<!-- NOT LEGAL ADVICE: drafted from the product's actual plans and billing flow for review by a qualified lawyer before launch. This comment is not rendered. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms of Service · {{BRAND_NAME}}</title>
+  <meta name="description" content="The terms that cover your use of {{BRAND_NAME}}, including plans, billing, cancellation, acceptable use and liability.">
+  <link rel="canonical" href="{{SITE_URL}}/terms">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{BRAND_NAME}}">
+  <meta property="og:title" content="Terms of Service · {{BRAND_NAME}}">
+  <meta property="og:description" content="The terms that cover your use of {{BRAND_NAME}}, including plans, billing, cancellation and acceptable use.">
+  <meta property="og:url" content="{{SITE_URL}}/terms">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Terms of Service · {{BRAND_NAME}}">
+  <meta name="twitter:description" content="The terms that cover your use of {{BRAND_NAME}}, including plans, billing, cancellation and acceptable use.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">LEGAL</p>
+      <h1 class="display">Terms of Service</h1>
+      <p class="page-head__meta mono muted">Effective {{LEGAL_EFFECTIVE_DATE}}</p>
+    </div>
+  </header>
+
+  <div class="container prose-wrap">
+    <div class="prose">
+      <h2>Who we are</h2>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, based in {{CITY}}. Postal address: {{POSTAL_ADDRESS}}. You can reach us at <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
+      <p>These terms are an agreement between you and us. By installing the extension, creating an account or using the website, you accept them. If you do not accept them, do not use {{BRAND_NAME}}.</p>
+
+      <h2>What the service is</h2>
+      <p>{{BRAND_NAME}} is a Chrome extension that adds effects to video calls. Snap your fingers and you turn to dust; snap again and you return. The Dust effect runs on your computer, and the extension works on the Free plan without an account.</p>
+      <p>The website lets you read about {{BRAND_NAME}}, create an account, manage a plan and contact us.<!-- @ifnot PAYMENTS_ENABLED --> Paid plans are not on sale yet. The billing sections below apply from the day they are.<!-- @endif --></p>
+
+      <h2>Eligibility</h2>
+      <p>You must be at least 18 to buy a plan. If you are under 18, you may use a paid plan only with a parent's or guardian's consent, and they are responsible for the purchase and for these terms. You must be old enough to use Chrome and the call apps you join, and to agree to their terms.</p>
+
+      <h2>Your account</h2>
+      <p>Use one account, for one person. Keep access to your email and your sign-in provider secure, because anyone who can sign in as you can manage your plan. Tell us promptly at <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a> if you think someone else has access.</p>
+      <p>You are responsible for what happens through your account. We may ask you to verify your email before certain actions.</p>
+
+      <h2>Plans and billing</h2>
+      <p>Plans and current prices are shown on the <a href="@@BASE@@pricing.html">pricing page</a>. Prices are in Indian rupees and include GST. We may change prices; if we do, we give at least 30 days' notice by email before the change applies to you.</p>
+      <p>Paid plans are monthly subscriptions that renew automatically until you cancel. Payments are processed by our payment partner, {{PAYMENT_PROVIDER}}. By subscribing, you authorise recurring charges to your chosen payment method for as long as the subscription is active.</p>
+      <p>If a payment fails, {{PAYMENT_PROVIDER}} may retry it. If it still fails after the retry period, your plan falls back to Free and the paid features stop until a payment succeeds.</p>
+
+      <h2>Cancellation and refunds</h2>
+      <p>You can cancel at any time from your <a href="@@BASE@@account.html">account page</a>. Your plan stays active until the end of the period you have paid for, and you are not charged again. We do not give partial refunds for the unused part of a period, except as set out in our <a href="@@BASE@@refund.html">Cancellation &amp; Refund Policy</a>.</p>
+
+      <h2>Acceptable use</h2>
+      <p>{{BRAND_NAME}} is for fun and short breaks. Do not use it to:</p>
+      <ul>
+        <li>mislead people about whether you are present, listening or attending;</li>
+        <li>impersonate anyone, harass anyone, or break the law;</li>
+        <li>break your employer's, school's or meeting host's rules, including rules about recording or attendance;</li>
+        <li>bypass plan limits, resell access, or share an account;</li>
+        <li>interfere with the extension, our servers or another person's use.</li>
+      </ul>
+      <p>You are responsible for following the rules of the call apps and meetings you join, and for telling people when an effect is running if that matters in the circumstances.</p>
+
+      <h2>Licence and intellectual property</h2>
+      <p>We grant you a personal, non-exclusive, non-transferable licence to use the extension for as long as you comply with these terms. The software is licensed, not sold. We keep all rights in {{BRAND_NAME}}, its name, code, models and design.</p>
+      <p>Do not reverse engineer, decompile or modify the extension to bypass plan limits, except where the law expressly allows it. Do not use our name or logo in a way that suggests endorsement.</p>
+
+      <h2>Third-party platforms</h2>
+      <p>Google Meet, Microsoft Teams, Zoom and X are independent companies. We are not affiliated with them, and they do not endorse {{BRAND_NAME}}. They can change their apps at any time, which may break an effect or a supported call app. We do not guarantee that {{BRAND_NAME}} will work with any particular version of those platforms.</p>
+
+      <h2>Availability and changes</h2>
+      <p>We work to keep {{BRAND_NAME}} running, but we do not promise uninterrupted service. We may add, change or remove features. Effects and call apps marked "Coming soon" are plans, not promises, and have no release date. We may suspend the service for maintenance or security work.</p>
+
+      <h2>Disclaimer</h2>
+      <p>{{BRAND_NAME}} is provided "as is" and "as available", without warranties of any kind, to the extent the law allows. We do not warrant that it will be error-free, that effects will look the same on every device, or that it will meet a particular purpose.</p>
+
+      <h2>Limitation of liability</h2>
+      <p>To the extent the law allows, we are not liable for indirect or consequential loss, lost profits, lost data, or loss caused by a third-party platform. Our total liability for any claim is limited to the amount you paid us in the three months before the event giving rise to the claim. Nothing in these terms limits liability that cannot be limited by law, including for fraud.</p>
+
+      <h2>Termination</h2>
+      <p>You can stop using {{BRAND_NAME}} at any time and delete your account from the account page. We may suspend or close an account if it is used for abuse, illegal activity, chargeback fraud or a serious breach of these terms. Where it is reasonable to do so, we tell you why and give you a chance to respond.</p>
+
+      <h2>Governing law</h2>
+      <p>These terms are governed by the laws of India. Disputes are subject to the exclusive jurisdiction of the courts at Chennai, Tamil Nadu.</p>
+
+      <h2>Changes to these terms</h2>
+      <p>We may update these terms. The new version is posted here with a new effective date. If a change materially affects your rights, we give reasonable notice by email or on this page before it applies. Continuing to use {{BRAND_NAME}} after that means you accept the new terms.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about these terms: <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a>. Grievances: {{GRIEVANCE_OFFICER_NAME}}, <a href="mailto:{{GRIEVANCE_EMAIL}}">{{GRIEVANCE_EMAIL}}</a>. We respond within {{SUPPORT_RESPONSE_TIME}}.</p>
+    </div>
+  </div>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

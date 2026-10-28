@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pricing · {{BRAND_NAME}}</title>
+  <meta name="description" content="Dust on Google Meet and Zoom is free forever. Pro adds every new effect as it launches, plus Teams and X, for ₹69 a month. Cancel anytime.">
+  <link rel="canonical" href="{{SITE_URL}}/pricing">
+  <meta name="theme-color" content="#F5F2EC">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{BRAND_NAME}}">
+  <meta property="og:title" content="Pricing · {{BRAND_NAME}}">
+  <meta property="og:description" content="Free forever for Dust on Google Meet and Zoom. Pro adds every new effect as it launches, plus Teams and X.">
+  <meta property="og:url" content="{{SITE_URL}}/pricing">
+  <meta property="og:image" content="{{SITE_URL}}/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pricing · {{BRAND_NAME}}">
+  <meta name="twitter:description" content="Free forever for Dust on Google Meet and Zoom. Pro adds every new effect as it launches, plus Teams and X.">
+  <meta name="twitter:image" content="{{SITE_URL}}/og-image.png">
+
+  <link rel="icon" href="@@BASE@@favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="@@BASE@@favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="@@BASE@@apple-touch-icon.png">
+  <link rel="manifest" href="@@BASE@@site.webmanifest">
+  <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body id="top">
+<!-- @include header.html -->
+
+<main id="main" tabindex="-1">
+  <header class="page-head">
+    <div class="container">
+      <p class="eyebrow">PRICING</p>
+      <h1 class="display">Free to start.<br><em>Pro</em> when you want more.</h1>
+      <p class="page-head__meta body muted">Dust on Meet and Zoom costs nothing, forever. Paid plans add effects and call apps as they launch.</p>
+    </div>
+  </header>
+
+  <section class="section" aria-labelledby="plans-title">
+    <div class="container">
+      <h2 class="visually-hidden" id="plans-title">Plans</h2>
+
+      <!-- @ifnot PAYMENTS_ENABLED -->
+      <p class="pricing-note small">Paid plans aren't on sale yet. Everything on the Free plan works today.</p>
+      <!-- @endif -->
+
+      <p class="pricing-note small">Only Dust is live today. <a class="link" href="@@BASE@@index.html#effects">Ember, Glitch, Portal and Fade are coming soon.</a></p>
+
+      {{PRICING_CARDS}}
+
+      <div class="pricing-more">
+        <a class="link-arrow" href="@@BASE@@index.html#effects">See which effects are live
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="pricing-faq-title">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">BILLING</p>
+        <h2 class="h2" id="pricing-faq-title">The small print, in plain English.</h2>
+      </div>
+
+      <div class="faq-list">
+        <details>
+          <summary><span class="faq-q">What happens when I cancel?</span></summary>
+          <div class="faq-a"><p>Your plan stays active until the end of the period you paid for. After that you're on Free, and nothing else is charged.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Can I get a refund?</span></summary>
+          <div class="faq-a"><p>Yes, for your first payment if you ask within {{REFUND_WINDOW_DAYS}} days. Renewals aren't refunded except for duplicate charges or a technical failure on our side. The <a class="link" href="@@BASE@@refund.html">Cancellation &amp; Refund Policy</a> has the detail.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Are prices inclusive of tax?</span></summary>
+          <div class="faq-a"><p>Yes. The price you see includes all taxes.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Do I need an account?</span></summary>
+          <div class="faq-a"><p>Not for Free. You only sign in to upgrade, manage a plan or cancel. The Free plan keeps working without an account.</p></div>
+        </details>
+      </div>
+
+      <p class="pricing-fine small">Prices in INR. Cancel anytime. Auto-renews monthly until cancelled. Read the <a class="link" href="@@BASE@@terms.html">Terms</a>.</p>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer.html -->
+
+<script type="module" src="/src/js/main.js"></script>
+</body>
+</html>
