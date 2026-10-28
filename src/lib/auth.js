@@ -35,9 +35,6 @@ export function safeNext(value, fallback = appUrl('account.html')) {
 
 const PROVIDERS = {
   google: 'Google',
-  azure: 'Microsoft',
-  microsoft: 'Microsoft',
-  apple: 'Apple',
   email: 'Email code',
 };
 

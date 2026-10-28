@@ -77,6 +77,21 @@
   width: 100%;
 }
 
+/* A store button with no listing yet: looks inert, stays keyboard-focusable so
+   screen readers announce it, and never pretends to be a link. */
+.btn[aria-disabled='true'],
+.btn[aria-disabled='true']:hover,
+.btn[aria-disabled='true']:active {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--primary[aria-disabled='true']:hover {
+  background: var(--ver);
+  border-color: var(--ver);
+}
+
 .btn-row {
   display: flex;
   flex-wrap: wrap;

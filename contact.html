@@ -61,8 +61,10 @@
       <p>We respond within {{SUPPORT_RESPONSE_TIME}}. If you are not satisfied with our response, you can complain to the Data Protection Board of India.</p>
 
       <h2>Who we are</h2>
-      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}.</p>
-      <p>Postal address:<br>{{POSTAL_ADDRESS}}</p>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}.</p>
+      <!-- @if HAS_POSTAL_ADDRESS -->
+      <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
+      <!-- @endif -->
       <!-- @if PHONE -->
       <p>Phone: {{PHONE}}</p>
       <!-- @endif -->

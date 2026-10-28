@@ -71,19 +71,21 @@ function brandHtml() {
         const isHome = /[\\/]index\.html$/.test(ctx.filename);
         const supabaseHost = hostOf(env.VITE_SUPABASE_URL, 'Supabase');
         const accountUrl = `${base}account.html`;
-        const hasGithub = Boolean(SITE.SHOW_GITHUB && SITE.GITHUB_URL);
-        const hasProfile = Boolean(SITE.SHOW_GITHUB && SITE.GITHUB_PROFILE_URL);
         const hasPressKit = Boolean(SITE.SHOW_PRESS_KIT && SITE.PRESS_KIT_URL);
+        const signin = new Set(SITE.ENABLED_SIGNIN);
 
         const flags = {
           ...SITE,
-          HAS_GITHUB: hasGithub,
-          HAS_PROFILE: hasProfile,
           HAS_PRESS_KIT: hasPressKit,
-          HAS_PROJECT_LINKS: hasGithub || hasPressKit,
-          HAS_PROVIDER_LOGIN: Boolean(
-            SITE.AUTH_GOOGLE || SITE.AUTH_MICROSOFT || SITE.AUTH_APPLE,
+          HAS_PROJECT_LINKS: hasPressKit,
+          HAS_POSTAL_ADDRESS: Boolean(SITE.OPERATOR_POSTAL_ADDRESS),
+          HAS_PROVIDER_LOGIN: ['google', 'microsoft', 'apple'].some((provider) =>
+            signin.has(provider),
           ),
+          SIGNIN_GOOGLE: signin.has('google'),
+          SIGNIN_EMAIL: signin.has('email'),
+          SIGNIN_MICROSOFT: signin.has('microsoft'),
+          SIGNIN_APPLE: signin.has('apple'),
         };
         const tokens = {
           ...Object.fromEntries(
@@ -91,14 +93,10 @@ function brandHtml() {
           ),
           SITE_HOST: hostOf(SITE.SITE_URL, 'this site'),
           SUPABASE_HOST: supabaseHost,
-          INSTALL_URL: SITE.CHROME_STORE_URL || (isHome ? '#install' : `${base}#install`),
           ACCOUNT_URL: accountUrl,
           LOGIN_URL: `${base}login.html?next=${encodeURIComponent(accountUrl)}`,
           PRICING_CARDS: renderPricing({ base, onHome: isHome }),
           JSONLD_OFFERS: renderOffers(),
-          DOWNLOAD_URL_JSON: SITE.DOWNLOAD_URL
-            ? `,\n    "downloadUrl": "${SITE.DOWNLOAD_URL}"`
-            : '',
         };
 
         const expanded = html.replace(

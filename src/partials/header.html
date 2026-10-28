@@ -21,15 +21,6 @@
         <li><a href="@@BASE@@#install">Install</a></li>
         <li><a href="@@BASE@@#faq">FAQ</a></li>
         <li><a href="@@BASE@@changelog.html">Changelog</a></li>
-        <!-- @if HAS_GITHUB -->
-        <li>
-          <a class="nav-ext" href="{{GITHUB_URL}}" target="_blank" rel="noopener">
-            GitHub
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5C5.73.5.9 5.33.9 11.6c0 4.9 3.17 9.05 7.57 10.52.55.1.75-.24.75-.53v-2.06c-3.08.67-3.73-1.31-3.73-1.31-.5-1.28-1.23-1.62-1.23-1.62-1-.68.08-.67.08-.67 1.11.08 1.7 1.14 1.7 1.14.98 1.68 2.57 1.2 3.2.92.1-.71.38-1.2.7-1.48-2.46-.28-5.05-1.23-5.05-5.48 0-1.21.43-2.2 1.14-2.98-.11-.28-.5-1.4.11-2.92 0 0 .93-.3 3.05 1.14a10.5 10.5 0 0 1 5.55 0c2.12-1.44 3.05-1.14 3.05-1.14.61 1.52.22 2.64.11 2.92.71.78 1.14 1.77 1.14 2.98 0 4.26-2.6 5.19-5.07 5.47.4.35.75 1.03.75 2.08v3.08c0 .29.2.64.76.53a11.1 11.1 0 0 0 7.56-10.52C23.1 5.33 18.27.5 12 .5Z"/></svg>
-            <span class="visually-hidden">(opens in a new tab)</span>
-          </a>
-        </li>
-        <!-- @endif -->
       </ul>
     </nav>
 
@@ -54,7 +45,12 @@
         </div>
       </div>
       <!-- @endif -->
-      <a class="btn btn--primary btn--compact" href="{{INSTALL_URL}}">Get {{BRAND_NAME}}</a>
+      <!-- @if CHROME_WEB_STORE_URL -->
+      <a class="btn btn--primary btn--compact" href="{{CHROME_WEB_STORE_URL}}">Add to Chrome</a>
+      <!-- @endif -->
+      <!-- @ifnot CHROME_WEB_STORE_URL -->
+      <button class="btn btn--primary btn--compact" type="button" aria-disabled="true">Coming soon to Chrome Web Store</button>
+      <!-- @endif -->
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-open>
         <span class="visually-hidden">Open menu</span>
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
@@ -93,13 +89,6 @@
     <a href="@@BASE@@#install">Install</a>
     <a href="@@BASE@@#faq">FAQ</a>
     <a href="@@BASE@@changelog.html">Changelog</a>
-    <!-- @if HAS_GITHUB -->
-    <a class="nav-ext" href="{{GITHUB_URL}}" target="_blank" rel="noopener">
-      GitHub
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5C5.73.5.9 5.33.9 11.6c0 4.9 3.17 9.05 7.57 10.52.55.1.75-.24.75-.53v-2.06c-3.08.67-3.73-1.31-3.73-1.31-.5-1.28-1.23-1.62-1.23-1.62-1-.68.08-.67.08-.67 1.11.08 1.7 1.14 1.7 1.14.98 1.68 2.57 1.2 3.2.92.1-.71.38-1.2.7-1.48-2.46-.28-5.05-1.23-5.05-5.48 0-1.21.43-2.2 1.14-2.98-.11-.28-.5-1.4.11-2.92 0 0 .93-.3 3.05 1.14a10.5 10.5 0 0 1 5.55 0c2.12-1.44 3.05-1.14 3.05-1.14.61 1.52.22 2.64.11 2.92.71.78 1.14 1.77 1.14 2.98 0 4.26-2.6 5.19-5.07 5.47.4.35.75 1.03.75 2.08v3.08c0 .29.2.64.76.53a11.1 11.1 0 0 0 7.56-10.52C23.1 5.33 18.27.5 12 .5Z"/></svg>
-      <span class="visually-hidden">(opens in a new tab)</span>
-    </a>
-    <!-- @endif -->
   </nav>
 
   <div class="menu-sheet__foot container">
@@ -107,7 +96,12 @@
     <a class="menu-sheet__signin" href="{{LOGIN_URL}}" data-auth-signedout>Sign in</a>
     <a class="menu-sheet__account" href="@@BASE@@account.html" data-auth-signedin hidden>Account</a>
     <!-- @endif -->
-    <a class="btn btn--primary" href="{{INSTALL_URL}}">Get {{BRAND_NAME}}</a>
+    <!-- @if CHROME_WEB_STORE_URL -->
+    <a class="btn btn--primary" href="{{CHROME_WEB_STORE_URL}}">Add to Chrome</a>
+    <!-- @endif -->
+    <!-- @ifnot CHROME_WEB_STORE_URL -->
+    <button class="btn btn--primary" type="button" aria-disabled="true">Coming soon to Chrome Web Store</button>
+    <!-- @endif -->
     <p class="mono muted">Chrome {{CHROME_MIN_VERSION}}+</p>
   </div>
 </div>

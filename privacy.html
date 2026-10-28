@@ -80,7 +80,7 @@
         <li><strong>Supabase</strong> — database and sign-in.</li>
         <li><strong>Vercel</strong> — website hosting and request logs.</li>
         <li><strong>{{PAYMENT_PROVIDER}}</strong> — payments and refunds, once paid plans are on sale.</li>
-        <li><strong>{{EMAIL_PROVIDER_NAME}}</strong> — sign-in codes and billing emails.</li>
+        <li><strong>{{EMAIL_PROVIDER_NAME}}</strong> — delivers sign-in codes and account emails.</li>
         <li><strong>Google</strong> — only if you choose Google sign-in.</li>
       </ul>
       <p>We do not sell your data, and we do not share it for advertising.</p>
@@ -113,13 +113,16 @@
       <p>We operate from India. The processors listed above may store or process data in other countries. Where that happens, they do so under their own safeguards and terms.</p>
 
       <h2>Permissions explained</h2>
-      <p><code>storage</code> saves your settings and room picture. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Microsoft Teams, Zoom and X call pages, where {{BRAND_NAME}} provides its processed camera. The extension may also contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> only to check your plan, and only when you are signed in.</p>
+      <p><code>storage</code> saves your settings and room picture. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Teams, Zoom and X call pages, where {{BRAND_NAME}} provides its processed camera. The extension may also contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> only to check your plan, and only when you are signed in.</p>
 
       <h2>Changes</h2>
       <p>If this policy changes, we post the new version here with a new effective date. Material changes that affect your rights will be announced by email or on this page before they take effect.</p>
 
       <h2>Contact</h2>
-      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}. Postal address: {{POSTAL_ADDRESS}}.</p>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}.</p>
+      <!-- @if HAS_POSTAL_ADDRESS -->
+      <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
+      <!-- @endif -->
       <p>Privacy questions: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a>. General contact: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
     </div>
   </div>

@@ -166,14 +166,12 @@
   display: none;
 }
 
-@media (min-width: 560px) {
+/* "Coming soon to Chrome Web Store" is far wider than "Get SnapX". It only
+   fits beside the full primary nav, so it appears at the desktop breakpoint;
+   below that the menu sheet and the page carry the store button. */
+@media (min-width: 1024px) {
   .header-actions .btn {
     display: inline-flex;
-  }
-}
-
-@media (min-width: 860px) {
-  .header-actions .btn {
     margin-left: var(--space-2);
   }
 }

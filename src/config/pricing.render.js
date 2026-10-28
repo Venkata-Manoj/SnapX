@@ -22,7 +22,7 @@ const priceLabel = (plan, symbol) =>
 const ctaFor = (plan, { installUrl, base }) => {
   if (plan.cta.action === 'install') {
     // No store listing yet: say what the link actually does instead of implying one.
-    const label = SITE.CHROME_STORE_URL ? plan.cta.label : 'See install steps';
+    const label = SITE.CHROME_WEB_STORE_URL ? plan.cta.label : 'See requirements';
     return `<a class="btn btn--secondary btn--wide" href="${esc(installUrl)}">${esc(label)}</a>`;
   }
 
@@ -38,7 +38,7 @@ const ctaFor = (plan, { installUrl, base }) => {
 
 export function renderPricing({ base = '/', onHome = false, priceSymbol = '₹' } = {}) {
   const effectsHref = onHome ? '#effects' : `${base}index.html#effects`;
-  const installUrl = SITE.CHROME_STORE_URL || (onHome ? '#install' : `${base}index.html#install`);
+  const installUrl = SITE.CHROME_WEB_STORE_URL || (onHome ? '#install' : `${base}index.html#install`);
 
   const cards = PLANS.map((plan) => {
     const ribbon = plan.highlight

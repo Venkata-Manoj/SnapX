@@ -12,34 +12,29 @@ empty URLs remove their element or fall back to the install section.
 
 | Value | Where it appears | Replace with |
 |---|---|---|
-| `POSTAL_ADDRESS` | Privacy, Terms, Contact | Real postal address (Razorpay requires it) |
+| `OPERATOR_POSTAL_ADDRESS` | Optional: Terms, Privacy, Contact | Full postal address (Razorpay wants one before launch) |
 
 `SITE_URL` is `https://snap-x-beta.vercel.app`. All five contact addresses are
-`call.snapx@gmail.com`. `GITHUB_PROFILE_URL` is the public profile; the build
-warning no longer names any of them.
+`call.snapx@gmail.com`. The build warning no longer names any of them.
 
 ## Deliberately empty until release
 
 | Value | Behaviour |
 |---|---|
-| `DOWNLOAD_URL` | No zip link; the manual-install disclosure stays |
-| `GITHUB_URL` | No repository links; the footer maker link uses `GITHUB_PROFILE_URL` |
 | `PRESS_KIT_URL` | The footer Project column stays hidden while `SHOW_PRESS_KIT` is false |
-| `CHROME_STORE_URL` | The install button scrolls to the install section and says the listing is coming soon |
+| `CHROME_WEB_STORE_URL` | Every store CTA is a disabled "Coming soon to Chrome Web Store" button; set it and they become "Add to Chrome" |
 
 `PHONE` is optional: set it and the Contact page shows it; leave it empty and
 the line disappears.
 
 ## Empty URL flags
 
-- `GITHUB_URL` empty → every repository link is removed, not left dead.
-  `GITHUB_PROFILE_URL` still drives the footer maker link because
-  `SHOW_GITHUB` is on.
 - `PRESS_KIT_URL` empty + `SHOW_PRESS_KIT: false` → the footer Project column is
   omitted entirely.
-- `DOWNLOAD_URL` empty → the install section shows the manual-install
-  disclosure instead of a zip link.
-- `CHROME_STORE_URL` empty → the install button scrolls to the install section.
+- `CHROME_WEB_STORE_URL` empty → every store CTA renders as a disabled button.
+  It is never a link, and never points at `#install`.
+- `OPERATOR_POSTAL_ADDRESS` empty → Terms, Privacy and Contact show
+  `Chennai, Tamil Nadu, India` and nothing else. No placeholder can render.
 
 ## Environment
 

@@ -29,7 +29,7 @@ export const PLANS = [
     features: [
       'Everything in Free',
       'All effects as they launch',
-      'Microsoft Teams',
+      'Teams',
       'X video calls', /* CONFIRM */
     ],
     cta: { label: 'Get Pro', action: 'checkout' },

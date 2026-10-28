@@ -42,10 +42,10 @@ https://<project-ref>.supabase.co/auth/v1/callback
 Then enable Google in Supabase → Authentication → Providers and paste the
 client ID and secret.
 
-**Microsoft / Apple** — the buttons stay hidden while `AUTH_MICROSOFT` and
-`AUTH_APPLE` are `false`. Enable the provider in Supabase first, then flip the
-flag in `src/config/site.config.js`. Microsoft uses the `azure` provider with
-the `email` scope, as the login code expects.
+**Microsoft / Apple** — not offered. `ENABLED_SIGNIN` in
+`src/config/site.config.js` lists `['google', 'email']`; add `'microsoft'` or
+`'apple'` only after enabling that provider in Supabase. Microsoft uses the
+`azure` provider with the `email` scope, as the login code expects.
 
 **Email** — enable the Email provider. Sign-in uses `signInWithOtp` followed by
 `verifyOtp({ type: 'email' })`, so the email template must contain the token.

@@ -15,7 +15,12 @@
         </a>
         <p class="footer-tagline">{{TAGLINE}}</p>
       </div>
-      <a class="btn btn--primary" href="{{INSTALL_URL}}">Get {{BRAND_NAME}}</a>
+      <!-- @if CHROME_WEB_STORE_URL -->
+      <a class="btn btn--primary" href="{{CHROME_WEB_STORE_URL}}">Add to Chrome</a>
+      <!-- @endif -->
+      <!-- @ifnot CHROME_WEB_STORE_URL -->
+      <button class="btn btn--primary" type="button" aria-disabled="true">Coming soon to Chrome Web Store</button>
+      <!-- @endif -->
     </div>
 
     <div class="footer-grid">
@@ -53,9 +58,6 @@
       <nav aria-labelledby="footer-project">
         <h2 class="footer-h" id="footer-project">Project</h2>
         <div class="footer-links">
-          <!-- @if HAS_GITHUB -->
-          <a href="{{GITHUB_URL}}" target="_blank" rel="noopener">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a>
-          <!-- @endif -->
           <!-- @if HAS_PRESS_KIT -->
           <a href="{{PRESS_KIT_URL}}" target="_blank" rel="noopener">Press kit<span class="visually-hidden"> (opens in a new tab)</span></a>
           <!-- @endif -->
@@ -64,7 +66,7 @@
       <!-- @endif -->
 
       <div class="footer-note">
-        <p class="small">Made in Chennai by <!-- @if HAS_PROFILE --><a class="link" href="{{GITHUB_PROFILE_URL}}" target="_blank" rel="noopener">{{OPERATOR_NAME}}</a><!-- @endif --><!-- @ifnot HAS_PROFILE -->{{OPERATOR_NAME}}<!-- @endif -->, a student at Saveetha School of Engineering.</p>
+        <p class="small">Made in Chennai by {{OPERATOR_NAME}}, a student at Saveetha School of Engineering.</p>
         <p class="small footer-kind">{{BRAND_NAME}} is for fun and short breaks. Please don't use it to mislead people about whether you're present.</p>
       </div>
     </div>

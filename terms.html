@@ -42,7 +42,10 @@
   <div class="container prose-wrap">
     <div class="prose">
       <h2>Who we are</h2>
-      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, based in {{CITY}}. Postal address: {{POSTAL_ADDRESS}}. You can reach us at <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
+      <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, based in {{CITY}}. You can reach us at <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
+      <!-- @if HAS_POSTAL_ADDRESS -->
+      <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
+      <!-- @endif -->
       <p>These terms are an agreement between you and us. By installing the extension, creating an account or using the website, you accept them. If you do not accept them, do not use {{BRAND_NAME}}.</p>
 
       <h2>What the service is</h2>
@@ -80,7 +83,7 @@
       <p>Do not reverse engineer, decompile or modify the extension to bypass plan limits, except where the law expressly allows it. Do not use our name or logo in a way that suggests endorsement.</p>
 
       <h2>Third-party platforms</h2>
-      <p>Google Meet, Microsoft Teams, Zoom and X are independent companies. We are not affiliated with them, and they do not endorse {{BRAND_NAME}}. They can change their apps at any time, which may break an effect or a supported call app. We do not guarantee that {{BRAND_NAME}} will work with any particular version of those platforms.</p>
+      <p>Google Meet, Teams, Zoom and X are independent companies. We are not affiliated with them, and they do not endorse {{BRAND_NAME}}. They can change their apps at any time, which may break an effect or a supported call app. We do not guarantee that {{BRAND_NAME}} will work with any particular version of those platforms.</p>
 
       <h2>Availability and changes</h2>
       <p>We work to keep {{BRAND_NAME}} running, but we do not promise uninterrupted service. We may add, change or remove features. Effects and call apps marked "Coming soon" are plans, not promises, and have no release date. We may suspend the service for maintenance or security work.</p>

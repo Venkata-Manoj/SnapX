@@ -40,7 +40,7 @@
     "offers": {{JSONLD_OFFERS}},
     "description": "Snap your fingers on a video call and turn to dust. Your mic mutes. Runs entirely on your computer, and the Free plan is free forever.",
     "url": "{{SITE_URL}}/",
-    "author": { "@type": "Person", "name": "{{OPERATOR_NAME}}" }{{DOWNLOAD_URL_JSON}}
+    "author": { "@type": "Person", "name": "{{OPERATOR_NAME}}" }
   }
   </script>
   <script type="application/ld+json">
@@ -60,7 +60,7 @@
       ,{ "@type": "Question", "name": "Does my mic really mute?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. While you are hidden, the audio {{BRAND_NAME}} passes to the call is silent. It can also press the meeting's own mute button so others see you as muted." } }
       ,{ "@type": "Question", "name": "What if I snap by accident?", "acceptedAnswer": { "@type": "Answer", "text": "Lower the sensitivity in the Controls tab and keep the click-sound check on. Snap again to come back." } }
       ,{ "@type": "Question", "name": "Can I use a shortcut instead of snapping?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Press Alt+Shift+S, or change the shortcut at chrome://extensions/shortcuts." } }
-      ,{ "@type": "Question", "name": "Is it on the Chrome Web Store?", "acceptedAnswer": { "@type": "Answer", "text": "<!-- @if CHROME_STORE_URL -->Yes. Install it from the Chrome Web Store.<!-- @endif --><!-- @ifnot CHROME_STORE_URL -->Coming soon. For now, install it manually in two minutes.<!-- @endif -->" } }
+      ,{ "@type": "Question", "name": "Is it on the Chrome Web Store?", "acceptedAnswer": { "@type": "Answer", "text": "<!-- @if CHROME_WEB_STORE_URL -->Yes. Install it from the Chrome Web Store.<!-- @endif --><!-- @ifnot CHROME_WEB_STORE_URL -->Not yet. SnapX is coming to the Chrome Web Store; install it from there when it arrives.<!-- @endif -->" } }
       ,{ "@type": "Question", "name": "Is it okay to use in meetings?", "acceptedAnswer": { "@type": "Answer", "text": "It is made for fun and quick breaks. Use it kindly, and do not use it to fake attendance." } }
     ]
   }
@@ -78,7 +78,12 @@
         <h1 class="display" id="hero-title">Snap to vanish.<br><em>Snap</em> to return.</h1>
         <p class="lead">Snap your fingers on a video call and you turn to dust. Everyone sees the empty room behind you, and your mic mutes. Snap again and you're back.</p>
         <div class="btn-row">
-          <a class="btn btn--primary" href="{{INSTALL_URL}}">Get {{BRAND_NAME}}</a>
+          <!-- @if CHROME_WEB_STORE_URL -->
+          <a class="btn btn--primary" href="{{CHROME_WEB_STORE_URL}}">Add to Chrome</a>
+          <!-- @endif -->
+          <!-- @ifnot CHROME_WEB_STORE_URL -->
+          <button class="btn btn--primary" type="button" aria-disabled="true">Coming soon to Chrome Web Store</button>
+          <!-- @endif -->
           <a class="btn btn--secondary" href="#how">See how it works</a>
         </div>
         <p class="hero__meta mono muted"><span class="hero__meta-line">v{{VERSION}} · Chrome {{CHROME_MIN_VERSION}}+</span><span class="hero__meta-sep" aria-hidden="true"> · </span><span class="hero__meta-line">Meet · Teams · Zoom · X</span></p>
@@ -269,7 +274,7 @@
           <span class="platform__domains mono muted">meet.google.com</span>
         </li>
         <li class="platform">
-          <span class="platform__name">Microsoft Teams</span>
+          <span class="platform__name">Teams</span>
           <span class="platform__domains mono muted">teams.microsoft.com · teams.live.com</span>
         </li>
         <li class="platform">
@@ -411,12 +416,6 @@
           <p class="effect__copy small muted">A quiet, slow fade to the empty room.</p>
         </li>
       </ul>
-
-      <!-- @if HAS_GITHUB -->
-      <p class="effects__vote body">Want one sooner? <a class="link-arrow" href="{{GITHUB_URL}}/discussions">Vote on GitHub
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-      </a></p>
-      <!-- @endif -->
     </div>
   </section>
 
@@ -454,13 +453,6 @@
           <p>While you're hidden, the audio sent to the call is silent, even if the meeting's own button can't be found.</p>
         </div>
       </div>
-
-      <!-- @if HAS_GITHUB -->
-      <a class="link link--ink hood-link" href="{{GITHUB_URL}}" target="_blank" rel="noopener">Read the source on GitHub
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-        <span class="visually-hidden">(opens in a new tab)</span>
-      </a>
-      <!-- @endif -->
     </div>
   </section>
 
@@ -468,105 +460,21 @@
   <section class="section" id="install" aria-labelledby="install-title">
     <div class="container">
       <div class="section-head" data-reveal>
-        <p class="eyebrow">INSTALL</p>
-        <h2 class="h2" id="install-title" data-wipe>Two minutes, start to snap.</h2>
+        <p class="eyebrow">GET SNAPX</p>
+        <h2 class="h2" id="install-title" data-wipe>Install</h2>
       </div>
 
       <div class="install-grid">
         <div class="install-main">
-          <!-- @if CHROME_STORE_URL -->
-          <p class="note-badge" data-reveal>The Chrome Web Store listing is live. Install it there and Chrome keeps it up to date.</p>
-
+          <p class="body" data-reveal>{{BRAND_NAME}} is coming to the Chrome Web Store. One click to add, and it updates itself.</p>
           <div class="install-download" data-reveal>
-            <a class="btn btn--primary" href="{{CHROME_STORE_URL}}" target="_blank" rel="noopener">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
-              Add {{BRAND_NAME}} to Chrome
-              <span class="visually-hidden">(opens in a new tab)</span>
-            </a>
-            <p class="mono muted">Free · Chrome {{CHROME_MIN_VERSION}}+</p>
+            <!-- @if CHROME_WEB_STORE_URL -->
+            <a class="btn btn--primary" href="{{CHROME_WEB_STORE_URL}}">Add to Chrome</a>
+            <!-- @endif -->
+            <!-- @ifnot CHROME_WEB_STORE_URL -->
+            <button class="btn btn--primary" type="button" aria-disabled="true">Coming soon to Chrome Web Store</button>
+            <!-- @endif -->
           </div>
-          <!-- @endif -->
-
-          <!-- @ifnot CHROME_STORE_URL -->
-          <p class="note-badge" data-reveal>Chrome Web Store listing coming soon. <!-- @if DOWNLOAD_URL -->Until then, install it manually. It's safe and takes two minutes.<!-- @endif --><!-- @ifnot DOWNLOAD_URL -->The manual install steps are below; the download link isn't published yet.<!-- @endif --></p>
-          <!-- @endif -->
-
-          <!-- @if SHOW_MANUAL_DOWNLOAD -->
-          <!-- @if CHROME_STORE_URL -->
-          <details class="manual">
-            <summary><span class="manual__title">Manual install (advanced)</span></summary>
-            <div class="manual__body">
-          <!-- @endif -->
-
-          <!-- @if DOWNLOAD_URL -->
-          <div class="install-download" data-reveal>
-            <a class="btn btn--primary" href="{{DOWNLOAD_URL}}">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
-              Download {{BRAND_NAME}} v{{VERSION}} (.zip)
-            </a>
-            <p class="mono muted">About 51 MB · includes the on-device AI models</p>
-          </div>
-          <!-- @endif -->
-
-          <ol class="stepper" data-reveal-stagger>
-            <li class="step-item">
-              <span class="step-item__num mono">01</span>
-              <div class="step-item__body">
-                <h3 class="h3">Unzip it.</h3>
-                <p class="body">Unzip the file. You get a folder with manifest.json inside.</p>
-              </div>
-            </li>
-            <li class="step-item">
-              <span class="step-item__num mono">02</span>
-              <div class="step-item__body">
-                <h3 class="h3">Open extensions.</h3>
-                <p class="body">In Chrome, go to <span class="inline-code mono">chrome://extensions</span>
-                  <button class="copy-btn" type="button" data-copy="chrome://extensions" aria-label="Copy chrome://extensions">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a2 2 0 0 0-2 2v9"/></svg>
-                    <span data-copy-label>Copy</span>
-                  </button>
-                </p>
-                <p class="step-item__note small muted">Paste it in the address bar. Chrome doesn't allow links to this page.</p>
-              </div>
-            </li>
-            <li class="step-item">
-              <span class="step-item__num mono">03</span>
-              <div class="step-item__body">
-                <h3 class="h3">Turn on Developer mode.</h3>
-                <p class="body">Top-right switch.</p>
-              </div>
-            </li>
-            <li class="step-item">
-              <span class="step-item__num mono">04</span>
-              <div class="step-item__body">
-                <h3 class="h3">Load unpacked.</h3>
-                <p class="body">Click Load unpacked and choose the folder that contains manifest.json.</p>
-              </div>
-            </li>
-            <li class="step-item">
-              <span class="step-item__num mono">05</span>
-              <div class="step-item__body">
-                <h3 class="h3">Pin it.</h3>
-                <p class="body">Click the puzzle icon in the toolbar, then the pin next to {{BRAND_NAME}}.</p>
-              </div>
-            </li>
-            <li class="step-item">
-              <span class="step-item__num mono">06</span>
-              <div class="step-item__body">
-                <h3 class="h3">Reload your call tab.</h3>
-                <p class="body">If Meet, Teams, Zoom or X was already open, reload it.</p>
-              </div>
-            </li>
-          </ol>
-
-          <p class="callout" data-reveal>Seeing "Manifest file is missing or unreadable"? You picked the outer folder. Choose the folder that has manifest.json directly inside.</p>
-          <!-- @if CHROME_STORE_URL -->
-            </div>
-          </details>
-          <!-- @endif -->
-          <!-- @endif -->
-
-          <p class="visually-hidden" aria-live="polite" data-copy-status></p>
         </div>
 
         <div class="install-side">
@@ -640,9 +548,6 @@
       <div class="help-foot" data-reveal>
         <p class="body">Still stuck? Open the {{BRAND_NAME}} popup → About → Copy diagnostics, and send it to us.</p>
         <div class="help-foot__links">
-          <!-- @if HAS_GITHUB -->
-          <a class="link" href="{{GITHUB_URL}}/issues/new" target="_blank" rel="noopener">Open an issue<span class="visually-hidden"> (opens in a new tab)</span></a>
-          <!-- @endif -->
           <a class="link" href="mailto:{{CONTACT_EMAIL}}?subject=Help%20with%20{{BRAND_NAME}}">Email us</a>
         </div>
         <p class="small muted">Diagnostics contain technical details only, never images or audio.</p>
@@ -724,11 +629,11 @@
         </details>
         <details>
           <summary><span class="faq-q">Is it on the Chrome Web Store?</span></summary>
-          <!-- @if CHROME_STORE_URL -->
+          <!-- @if CHROME_WEB_STORE_URL -->
           <div class="faq-a"><p>Yes. Install it from the Chrome Web Store.</p></div>
           <!-- @endif -->
-          <!-- @ifnot CHROME_STORE_URL -->
-          <div class="faq-a"><p>Coming soon. For now, install it manually in two minutes.</p></div>
+          <!-- @ifnot CHROME_WEB_STORE_URL -->
+          <div class="faq-a"><p>Not yet. {{BRAND_NAME}} is coming to the Chrome Web Store; install it from there when it arrives.</p></div>
           <!-- @endif -->
         </details>
         <details>
@@ -760,14 +665,6 @@
         <li class="roadmap__item">Chrome Web Store</li>
       </ul>
 
-      <!-- @if HAS_GITHUB -->
-      <div class="updates" data-reveal>
-        <p class="updates__text">Get a heads-up when new effects land.</p>
-        <a class="btn btn--primary" href="{{GITHUB_URL}}" target="_blank" rel="noopener">Watch on GitHub
-          <span class="visually-hidden">(opens in a new tab)</span>
-        </a>
-      </div>
-      <!-- @endif -->
     </div>
   </section>
 </main>

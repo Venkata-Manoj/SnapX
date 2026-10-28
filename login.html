@@ -32,7 +32,7 @@
         <div class="auth-card">
           <!-- @if HAS_PROVIDER_LOGIN -->
           <div class="provider-list">
-            <!-- @if AUTH_GOOGLE -->
+            <!-- @if SIGNIN_GOOGLE -->
             <button class="provider-btn" type="button" data-provider="google">
               <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
                 <path fill="#4285F4" d="M17.64 9.2045c0-.638-.0573-1.2518-.1636-1.8409H9v3.4814h4.8436c-.2086 1.125-.8427 2.0782-1.7963 2.7164v2.2581h2.9087c1.7018-1.5668 2.6839-3.874 2.6839-6.615z"/>
@@ -43,7 +43,7 @@
               Continue with Google
             </button>
             <!-- @endif -->
-            <!-- @if AUTH_MICROSOFT -->
+            <!-- @if SIGNIN_MICROSOFT -->
             <button class="provider-btn" type="button" data-provider="azure">
               <svg viewBox="0 0 18 18" aria-hidden="true" focusable="false">
                 <rect x="1" y="1" width="7.5" height="7.5" fill="#F25022"/>
@@ -54,7 +54,7 @@
               Continue with Microsoft
             </button>
             <!-- @endif -->
-            <!-- @if AUTH_APPLE -->
+            <!-- @if SIGNIN_APPLE -->
             <button class="provider-btn provider-btn--apple" type="button" data-provider="apple">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
                 <path d="M16.365 12.79c-.02-2.03 1.66-3.01 1.74-3.06-.95-1.39-2.43-1.58-2.96-1.6-1.26-.13-2.46.74-3.1.74-.64 0-1.63-.72-2.68-.7-1.38.02-2.65.8-3.36 2.03-1.43 2.48-.37 6.15 1.03 8.16.68.99 1.49 2.09 2.55 2.05 1.02-.04 1.41-.66 2.65-.66 1.23 0 1.58.66 2.66.64 1.1-.02 1.8-1 2.47-1.99.78-1.14 1.1-2.24 1.12-2.3-.02-.01-2.15-.83-2.17-3.27zM14.3 6.58c.56-.68.94-1.63.84-2.58-.81.03-1.79.54-2.37 1.22-.52.6-.97 1.57-.85 2.49.9.07 1.82-.46 2.38-1.13z"/>
@@ -65,7 +65,7 @@
           </div>
           <!-- @endif -->
 
-          <!-- @if AUTH_EMAIL -->
+          <!-- @if SIGNIN_EMAIL -->
           <!-- @if HAS_PROVIDER_LOGIN -->
           <div class="auth-divider"><span>or</span></div>
           <!-- @endif -->

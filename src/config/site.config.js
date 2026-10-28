@@ -5,8 +5,8 @@
  * at build time, so a rename is a one-file change. Flags are read by
  * <!-- @if FLAG --> … <!-- @endif --> blocks in the HTML.
  *
- * Values marked FILL are placeholders: replace them before pointing a real
- * domain at the site. `npm run build` prints a warning for each one.
+ * Optional links and addresses are omitted when empty. `npm run build` prints a
+ * warning only for required values that still look like placeholders.
  */
 
 export const SITE = {
@@ -27,36 +27,28 @@ export const SITE = {
   OPERATOR_NAME: 'B V Manoj',
   OPERATOR_TYPE: 'an individual (sole proprietor)',
   CITY: 'Chennai, Tamil Nadu, India',
-  POSTAL_ADDRESS: '[Postal address to be added before launch]', // FILL: required by Razorpay
+  OPERATOR_POSTAL_ADDRESS: '', // optional; shown only when set
   PHONE: '', // optional; rendered only when set
   GRIEVANCE_OFFICER_NAME: 'B V Manoj',
   GRIEVANCE_EMAIL: 'call.snapx@gmail.com',
   SUPPORT_RESPONSE_TIME: '2 working days',
 
   /* ---------- Links ---------- */
-  GITHUB_URL: '', // no repository link; the public profile is used instead
-  GITHUB_PROFILE_URL: 'https://github.com/Venkata-Manoj/',
-  DOWNLOAD_URL: '', // no zip download; Chrome Web Store link to follow
   PRESS_KIT_URL: '', // add after release
-  CHROME_STORE_URL: '', // add when the Chrome Web Store listing is live
+  CHROME_WEB_STORE_URL: '', // add when the Chrome Web Store listing is live
   REPO_NAME: 'snapx-web',
 
   /* ---------- Feature flags ---------- */
-  SHOW_GITHUB: true, // shows the public profile link; repository links stay off
   SHOW_PRESS_KIT: false,
-  SHOW_MANUAL_DOWNLOAD: true, // until the Chrome Web Store listing is live
   AUTH_ENABLED: true,
-  AUTH_GOOGLE: true,
-  AUTH_EMAIL: true,
-  AUTH_MICROSOFT: false, // enable after wiring the Azure provider in Supabase
-  AUTH_APPLE: false, // enable after wiring the Apple provider in Supabase
+  ENABLED_SIGNIN: ['google', 'email'], // add 'microsoft' or 'apple' when wired
   PAYMENTS_ENABLED: false, // Part B flips this on with Razorpay
 
   /* ---------- Product facts ---------- */
   VERSION: '1.4.0',
   CHROME_MIN_VERSION: '116',
   PAYMENT_PROVIDER: 'Razorpay',
-  EMAIL_PROVIDER_NAME: 'Resend',
+  EMAIL_PROVIDER_NAME: 'Google (Gmail SMTP)',
   REFUND_WINDOW_DAYS: '7',
   COPYRIGHT_YEAR: '2026',
 
@@ -74,11 +66,6 @@ export const UNFILLED = [
   ['BILLING_EMAIL', SITE.BILLING_EMAIL],
   ['PRIVACY_EMAIL', SITE.PRIVACY_EMAIL],
   ['GRIEVANCE_EMAIL', SITE.GRIEVANCE_EMAIL],
-  ['POSTAL_ADDRESS', SITE.POSTAL_ADDRESS],
-  ['DOWNLOAD_URL', SITE.DOWNLOAD_URL],
-  ['GITHUB_PROFILE_URL', SITE.GITHUB_PROFILE_URL],
-  ['PRESS_KIT_URL', SITE.PRESS_KIT_URL],
-  ['CHROME_STORE_URL', SITE.CHROME_STORE_URL],
 ]
   .filter(([, value]) => !value || /example\.com|to be added/i.test(String(value)))
   .map(([key]) => key);

@@ -23,12 +23,10 @@ placeholder. The values below are the launch-critical set:
 | `BILLING_EMAIL` | Set to `call.snapx@gmail.com`; Refund Policy and account page. |
 | `PRIVACY_EMAIL` | Set to `call.snapx@gmail.com`; data-rights requests. |
 | `GRIEVANCE_EMAIL` | Set to `call.snapx@gmail.com`; DPDP grievance officer address. |
-| `POSTAL_ADDRESS` | Still required by Razorpay and the legal pages. |
-| `DOWNLOAD_URL` | Leave empty; there is no zip download. |
-| `GITHUB_URL` | Leave empty; repository links stay hidden. |
-| `GITHUB_PROFILE_URL` | Set to `https://github.com/Venkata-Manoj/`; footer maker link. |
+| `OPERATOR_POSTAL_ADDRESS` | Optional. Empty today, so the legal pages show `CITY` alone and never a placeholder. Set it and Terms, Privacy and Contact render the full address. |
+| `EMAIL_PROVIDER_NAME` | `Google (Gmail SMTP)`; the processor that delivers sign-in codes. |
 | `PRESS_KIT_URL` | Empty until a press kit exists after release. |
-| `CHROME_STORE_URL` | Empty until the Chrome Web Store listing is live. |
+| `CHROME_WEB_STORE_URL` | Empty until the Chrome Web Store listing is live. Empty renders a disabled "Coming soon to Chrome Web Store" button; set it and every store CTA becomes "Add to Chrome". |
 
 `PHONE` is optional: set it and the Contact page renders it; leave it empty and
 the line disappears.
@@ -37,12 +35,9 @@ the line disappears.
 
 | Flag | What it does |
 |---|---|
-| `SHOW_GITHUB` | Shows the public profile link; repository links appear only when `GITHUB_URL` is also set. |
 | `SHOW_PRESS_KIT` | Shows the footer press-kit link only when a URL is also set. |
-| `SHOW_MANUAL_DOWNLOAD` | Shows the manual-install disclosure under the install button. |
 | `AUTH_ENABLED` | Renders sign-in in the header and the auth pages. |
-| `AUTH_GOOGLE` / `AUTH_MICROSOFT` / `AUTH_APPLE` | Each provider button. Microsoft uses the Supabase `azure` provider. |
-| `AUTH_EMAIL` | Eight-digit email-code form. |
+| `ENABLED_SIGNIN` | `['google', 'email']`: which provider buttons render. Add `'microsoft'` or `'apple'` only after wiring that provider in Supabase. |
 | `PAYMENTS_ENABLED` | `false`: paid CTAs are disabled with "Payments open soon". Part B turns this on. |
 
 Flags are read by `<!-- @if FLAG --> … <!-- @endif -->` and
