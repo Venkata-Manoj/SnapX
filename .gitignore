@@ -12,3 +12,7 @@ SITE_PHASE2_PROMPT.md
 supabase/.env
 supabase/.env.secrets
 .playwright-mcp/
+PLAN_PASS_CONTRACT.md
+SITE_CONNECT_PROMPT.md
+supabase/.temp/
+.cursor/
