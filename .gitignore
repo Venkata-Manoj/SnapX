@@ -8,4 +8,7 @@ SITE_PHASE2_PROMPT.md
 *.log
 .env
 .env.local
+*.pem
+supabase/.env
+supabase/.env.secrets
 .playwright-mcp/

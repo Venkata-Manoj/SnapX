@@ -1,13 +1,15 @@
--- SnapX accounts schema.
+-- SnapX accounts and billing schema.
 --
 -- Run this in the Supabase SQL editor for the project the site points at.
--- It is idempotent: safe to run again after edits. It creates the two tables
--- the site reads, a trigger that gives every new user a Free plan row, and
--- row-level security so a signed-in user can read only their own rows.
+-- It is idempotent: safe to run again after edits. It creates the tables the
+-- site reads, a trigger that gives every new user a Free plan row, a
+-- payment-events ledger for Razorpay webhook idempotency, and row-level
+-- security so a signed-in user can read only their own rows.
 --
 -- The browser uses the publishable key and never writes these tables. The
--- Razorpay webhook (Part B) writes with the service-role key, which bypasses
--- RLS by design.
+-- Edge Functions (create-subscription, razorpay-webhook, cancel-subscription,
+-- change-subscription, delete-account, entitlement) write with the
+-- service-role key, which bypasses RLS by design.
 
 -- ---------- Profiles (display data copied from the sign-in provider) ----------
 
@@ -42,6 +44,50 @@ alter table public.subscriptions add column if not exists current_period_end tim
 alter table public.subscriptions add column if not exists cancel_at_period_end boolean not null default false;
 alter table public.subscriptions add column if not exists provider_subscription_id text;
 alter table public.subscriptions add column if not exists updated_at timestamptz not null default now();
+
+-- Billing details written only by the Edge Functions.
+alter table public.subscriptions add column if not exists provider_plan_id text;
+alter table public.subscriptions add column if not exists started_at timestamptz;
+alter table public.subscriptions add column if not exists pending_plan text;
+alter table public.subscriptions add column if not exists pending_plan_at timestamptz;
+alter table public.subscriptions add column if not exists last_payment_at timestamptz;
+alter table public.subscriptions add column if not exists last_payment_amount integer;
+alter table public.subscriptions add column if not exists last_payment_currency text;
+
+create unique index if not exists subscriptions_provider_subscription_id_key
+  on public.subscriptions (provider_subscription_id)
+  where provider_subscription_id is not null;
+
+-- ---------- Payment events (webhook idempotency ledger) ----------
+--
+-- One row per Razorpay event, keyed by the X-Razorpay-Event-Id header. The
+-- payload is minimised to the billing fields we need for reconciliation: no
+-- customer name, email, phone, card or UPI data is stored. user_id is set to
+-- null by the foreign key when an account is deleted, so the payment record
+-- survives for tax purposes without identifying the person.
+
+create table if not exists public.payment_events (
+  id text primary key,
+  event text not null,
+  user_id uuid references auth.users (id) on delete set null,
+  provider_subscription_id text,
+  payload jsonb not null default '{}'::jsonb,
+  received_at timestamptz not null default now(),
+  processed_at timestamptz,
+  error text
+);
+
+alter table public.payment_events add column if not exists event text;
+alter table public.payment_events add column if not exists user_id uuid references auth.users (id) on delete set null;
+alter table public.payment_events add column if not exists provider_subscription_id text;
+alter table public.payment_events add column if not exists payload jsonb not null default '{}'::jsonb;
+alter table public.payment_events add column if not exists received_at timestamptz not null default now();
+alter table public.payment_events add column if not exists processed_at timestamptz;
+alter table public.payment_events add column if not exists error text;
+
+create index if not exists payment_events_user_id_idx on public.payment_events (user_id);
+create index if not exists payment_events_subscription_idx
+  on public.payment_events (provider_subscription_id);
 
 -- ---------- updated_at ----------
 
@@ -116,6 +162,7 @@ on conflict (user_id) do nothing;
 
 alter table public.profiles enable row level security;
 alter table public.subscriptions enable row level security;
+alter table public.payment_events enable row level security;
 
 drop policy if exists "Read own profile" on public.profiles;
 create policy "Read own profile"
@@ -134,5 +181,9 @@ grant select on public.subscriptions to authenticated;
 revoke all on public.profiles from anon;
 revoke all on public.subscriptions from anon;
 
+-- The payment ledger has no browser policy at all: service-role only.
+revoke all on public.payment_events from anon;
+revoke all on public.payment_events from authenticated;
+
 -- Writes are intentionally not granted to anon or authenticated. The payment
--- webhook and the delete-account function use the service-role key server-side.
+-- webhook and the account functions use the service-role key server-side.

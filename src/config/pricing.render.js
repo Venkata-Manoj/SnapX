@@ -31,9 +31,9 @@ const ctaFor = (plan, { installUrl, base }) => {
         <p class="plan__note small" id="plan-${esc(plan.id)}-note">Payments open soon. The Free plan works today.</p>`;
   }
 
-  const next = encodeURIComponent(`/pricing.html#${plan.id}`);
-  return `<a class="btn ${plan.highlight ? 'btn--primary' : 'btn--secondary'} btn--wide" href="${esc(`${base}login.html?next=${next}`)}">${esc(plan.cta.label)}</a>
-        <p class="plan__note small">You'll be asked to sign in first.</p>`;
+  const next = encodeURIComponent(`${base}pricing.html#${plan.id}`);
+  return `<a class="btn ${plan.highlight ? 'btn--primary' : 'btn--secondary'} btn--wide" href="${esc(`${base}login.html?next=${next}`)}" data-checkout="${esc(plan.id)}">${esc(plan.cta.label)}</a>
+        <p class="plan__note small">One plan per account. Cancel anytime.</p>`;
 };
 
 export function renderPricing({ base = '/', onHome = false, priceSymbol = '₹' } = {}) {
@@ -78,11 +78,15 @@ export function renderPricing({ base = '/', onHome = false, priceSymbol = '₹' 
   }).join('\n        ');
 
   const tax = PRICES_INCLUDE_TAX ? ' Inclusive of all taxes.' : '';
+  const secured = SITE.PAYMENTS_ENABLED
+    ? `<p class="pricing-secured small"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Payments secured by ${esc(SITE.PAYMENT_PROVIDER)}.</p>`
+    : '';
 
   return `<div class="pricing-grid">
         ${cards}
       </div>
-      <p class="pricing-fine small">Prices in INR.${tax} Cancel anytime. Auto-renews monthly until cancelled.</p>`;
+      <p class="pricing-fine small">Prices in INR.${tax} Cancel anytime. Auto-renews monthly until cancelled.</p>
+      ${secured}`;
 }
 
 /** Offer list for the homepage SoftwareApplication JSON-LD. */

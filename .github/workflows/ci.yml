@@ -1,0 +1,32 @@
+name: CI
+
+# Build the site, run the billing tests and prove that no credential reaches
+# dist/. Vercel deploys from its own build; this job is the gate.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:billing
+      - run: npm run build
+      - name: Grep dist for secrets
+        run: |
+          if grep -RInE 'rzp_(live|test)_[A-Za-z0-9]{8,}|sb_secret_[A-Za-z0-9_-]{16,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|ENTITLEMENT_PRIVATE_KEY|RAZORPAY_KEY_SECRET|RAZORPAY_WEBHOOK_SECRET|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY' dist; then
+            echo "::error::A secret pattern was found in dist/"
+            exit 1
+          fi
+          echo "No secret patterns in dist/."

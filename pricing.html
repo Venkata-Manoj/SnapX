@@ -26,7 +26,7 @@
   <link rel="preload" href="@@BASE@@fonts/InstrumentSerif-normal-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/src/styles/main.css">
 </head>
-<body id="top">
+<body id="top" data-base="@@BASE@@" data-brand="{{BRAND_NAME}}" data-billing-email="{{BILLING_EMAIL}}">
 <!-- @include header.html -->
 
 <main id="main" tabindex="-1">
@@ -49,6 +49,10 @@
       <p class="pricing-note small">Only Dust is live today. <a class="link" href="@@BASE@@index.html#effects">Ember, Glitch, Portal and Fade are coming soon.</a></p>
 
       {{PRICING_CARDS}}
+
+      <!-- @if PAYMENTS_ENABLED -->
+      <p class="pricing-status form-status" role="status" aria-live="polite" data-checkout-status></p>
+      <!-- @endif -->
 
       <div class="pricing-more">
         <a class="link-arrow" href="@@BASE@@index.html#effects">See which effects are live
@@ -92,5 +96,8 @@
 <!-- @include footer.html -->
 
 <script type="module" src="/src/js/main.js"></script>
+<!-- @if PAYMENTS_ENABLED -->
+<script type="module" src="/src/js/checkout.js"></script>
+<!-- @endif -->
 </body>
 </html>

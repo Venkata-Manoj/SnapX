@@ -6,10 +6,12 @@
   "description": "The SnapX marketing site.",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/check-placeholders.mjs",
+    "build": "vite build && node scripts/check-placeholders.mjs && node scripts/check-secrets.mjs",
     "preview": "vite preview",
     "images": "node scripts/images.mjs",
     "check:placeholders": "node scripts/check-placeholders.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "test:billing": "node scripts/test-billing.mjs",
     "check": "linkinator dist --recurse --silent --skip \"^(https?://(?!localhost|127\\.0\\.0\\.1)|mailto:)\""
   },
   "devDependencies": {

@@ -49,6 +49,12 @@ VITE_SUPABASE_PUBLISHABLE_KEY=
 key never belongs in either. Add the same two values in Vercel for Production
 and Preview.
 
+Billing secrets (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+`RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_PLAN_PRO`, `RAZORPAY_PLAN_MAX`,
+`ENTITLEMENT_PRIVATE_KEY`) live only in Supabase. They are not placeholders in
+this repo and must never be added to `.env` or Vercel. See
+[`docs/PAYMENTS.md`](docs/PAYMENTS.md).
+
 ## The deploy workflow
 
 `.github/workflows/deploy.yml` is a manual GitHub Pages fallback. It runs only

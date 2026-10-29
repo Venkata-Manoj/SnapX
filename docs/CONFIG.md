@@ -25,6 +25,7 @@ placeholder. The values below are the launch-critical set:
 | `GRIEVANCE_EMAIL` | Set to `call.snapx@gmail.com`; DPDP grievance officer address. |
 | `OPERATOR_POSTAL_ADDRESS` | Optional. Empty today, so the legal pages show `CITY` alone and never a placeholder. Set it and Terms, Privacy and Contact render the full address. |
 | `EMAIL_PROVIDER_NAME` | `Google (Gmail SMTP)`; the processor that delivers sign-in codes. |
+| `PAYMENT_PROVIDER` | `Razorpay`; the processor named on the pricing, legal and privacy pages. |
 | `PRESS_KIT_URL` | Empty until a press kit exists after release. |
 | `CHROME_WEB_STORE_URL` | Empty until the Chrome Web Store listing is live. Empty renders a disabled "Coming soon to Chrome Web Store" button; set it and every store CTA becomes "Add to Chrome". |
 
@@ -38,7 +39,7 @@ the line disappears.
 | `SHOW_PRESS_KIT` | Shows the footer press-kit link only when a URL is also set. |
 | `AUTH_ENABLED` | Renders sign-in in the header and the auth pages. |
 | `ENABLED_SIGNIN` | `['google', 'email']`: which provider buttons render. Add `'microsoft'` or `'apple'` only after wiring that provider in Supabase. |
-| `PAYMENTS_ENABLED` | `false`: paid CTAs are disabled with "Payments open soon". Part B turns this on. |
+| `PAYMENTS_ENABLED` | `true`: paid CTAs start Razorpay Checkout. `false` renders disabled "Payments open soon" buttons instead. |
 
 Flags are read by `<!-- @if FLAG --> … <!-- @endif -->` and
 `<!-- @ifnot FLAG --> … <!-- @endif -->` blocks in HTML. An unknown flag or
@@ -57,17 +58,20 @@ token fails the build, so a typo cannot silently ship an empty element.
 
 ## Security headers and Razorpay
 
-`vercel.json` sets the CSP for every route. The current policy allows the
-Supabase host over HTTPS and WSS, which is all Part A needs. When Part B turns
-on Razorpay Checkout, extend the same policy before shipping:
+`vercel.json` sets the CSP for every route. The current policy allows:
 
-- `script-src` add `https://checkout.razorpay.com` (Checkout script).
-- `connect-src` add `https://api.razorpay.com` (subscription and payment APIs).
-- `frame-src` add `https://api.razorpay.com https://checkout.razorpay.com` if
-  Checkout renders in an iframe.
+- `script-src 'self' https://*.razorpay.com` — Razorpay Checkout, loaded on the
+  first CTA click.
+- `connect-src` — the Supabase host over HTTPS and WSS, plus
+  `https://*.razorpay.com` for the payment APIs.
+- `frame-src 'self' https://*.razorpay.com` — Checkout renders in an iframe.
+- `font-src 'self' https://*.razorpay.com` — Checkout's icon font.
+- `style-src 'self' 'unsafe-inline'` — Checkout injects styles at runtime. This
+  does not allow inline scripts.
 
-JSON has no comments, so this section is the comment slot for those hosts. Do not
-add them while `PAYMENTS_ENABLED` is false.
+JSON has no comments, so this section is the comment slot for those hosts. Do
+not remove them while `PAYMENTS_ENABLED` is true: checkout fails only in
+production, because the dev server does not apply Vercel headers.
 
 ## Deploy base path
 

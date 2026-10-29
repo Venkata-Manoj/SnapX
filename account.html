@@ -61,7 +61,7 @@
 
           <article class="card account-card danger-zone" aria-labelledby="danger-title">
             <h2 class="h3" id="danger-title">Danger zone</h2>
-            <p class="small">Delete your account and plan data. We remove them within 30 days. Deleting your account doesn't affect the Free plan. {{BRAND_NAME}} keeps working without an account.</p>
+            <p class="small">Deleting your account removes it now, including any time left on a paid plan. Your subscription is cancelled so you are not charged again. Payment records are kept without your name or email, as tax law requires. This cannot be undone, and {{BRAND_NAME}} keeps working without an account.</p>
             <div class="account-actions">
               <button class="btn btn--danger btn--compact" type="button" data-delete-open>Delete my account</button>
             </div>
@@ -86,11 +86,19 @@
                 <dt data-plan-date-label>Renews on</dt>
                 <dd data-plan-date>—</dd>
               </div>
+              <div class="fact-row" data-plan-pending-row hidden>
+                <dt>Switches to</dt>
+                <dd data-plan-pending>—</dd>
+              </div>
+              <div class="fact-row" data-plan-payment-row hidden>
+                <dt>Last payment</dt>
+                <dd data-plan-payment>—</dd>
+              </div>
             </dl>
             <div class="account-actions">
-              <a class="btn btn--primary btn--compact" href="@@BASE@@pricing.html">Upgrade</a>
+              <a class="btn btn--primary btn--compact" href="@@BASE@@pricing.html" data-plan-upgrade>Upgrade</a>
               <!-- @if PAYMENTS_ENABLED -->
-              <button class="btn btn--secondary btn--compact" type="button" data-manage>Manage / Cancel</button>
+              <button class="btn btn--secondary btn--compact" type="button" data-manage hidden>Manage plan</button>
               <!-- @endif -->
               <!-- @ifnot PAYMENTS_ENABLED -->
               <button class="btn btn--secondary btn--compact" type="button" disabled aria-describedby="manage-note">Manage / Cancel</button>
@@ -107,14 +115,58 @@
         </div>
       </div>
 
+      <div class="card account-card account-deleted" data-account-deleted tabindex="-1" hidden>
+        <h2 class="h3">Your account is deleted</h2>
+        <p>Your account, sign-in and plan have been removed. Any subscription is cancelled, so you will not be charged again.</p>
+        <p class="small muted">Payment records are kept without your name or email, as tax law requires. {{BRAND_NAME}} keeps working without an account.</p>
+        <div class="account-actions">
+          <a class="btn btn--primary btn--compact" href="@@BASE@@">Back to the site</a>
+        </div>
+      </div>
+
       <p class="form-status" role="status" aria-live="polite" data-account-status></p>
     </div>
   </section>
 
+  <dialog class="confirm-dialog" data-manage-dialog aria-labelledby="manage-title">
+    <div class="confirm-dialog__body">
+      <h2 class="h3" id="manage-title">Manage your plan</h2>
+      <p class="small muted" data-manage-current></p>
+
+      <div class="manage-block" data-switch-block hidden>
+        <h3 class="manage-block__title" data-switch-title>Switch plan</h3>
+        <p class="small" data-switch-copy></p>
+        <div class="account-actions">
+          <button class="btn btn--primary btn--compact" type="button" data-switch-plan>Switch plan</button>
+        </div>
+      </div>
+
+      <div class="manage-block" data-cancel-block>
+        <h3 class="manage-block__title">Cancel your plan</h3>
+        <p class="small" data-cancel-copy></p>
+        <div class="account-actions">
+          <button class="btn btn--danger btn--compact" type="button" data-cancel-open>Cancel plan</button>
+        </div>
+        <div data-cancel-confirm hidden>
+          <p class="small" data-cancel-warning></p>
+          <div class="account-actions">
+            <button class="btn btn--secondary btn--compact" type="button" data-cancel-abort>Keep my plan</button>
+            <button class="btn btn--danger btn--compact" type="button" data-cancel-go>Yes, cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="form-status small" data-manage-status role="status" aria-live="polite"></p>
+      <div class="confirm-dialog__actions">
+        <button class="btn btn--secondary btn--compact" type="button" data-manage-close>Close</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="confirm-dialog" data-delete-dialog aria-labelledby="delete-title">
     <form method="dialog" class="confirm-dialog__body">
       <h2 class="h3" id="delete-title">Delete your account?</h2>
-      <p>This removes your account, plan and sign-in. We do it within 30 days, and it cannot be undone.</p>
+      <p>This removes your account, sign-in and plan now. If you have a paid plan, it is cancelled and you will not be charged again, but you lose the rest of the period you have paid for. This cannot be undone.</p>
       <div class="field">
         <label for="delete-confirm">Type DELETE to confirm</label>
         <input id="delete-confirm" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" data-delete-input>

@@ -22,7 +22,7 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://pioepofmuuzftnpnwqhe.supabase.co wss://pioepofmuuzftnpnwqhe.supabase.co; form-action 'self' https://accounts.google.com; manifest-src 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' https://*.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://*.razorpay.com; connect-src 'self' https://pioepofmuuzftnpnwqhe.supabase.co wss://pioepofmuuzftnpnwqhe.supabase.co https://*.razorpay.com; frame-src 'self' https://*.razorpay.com; form-action 'self' https://accounts.google.com; manifest-src 'self'; upgrade-insecure-requests"
         }
       ]
     }

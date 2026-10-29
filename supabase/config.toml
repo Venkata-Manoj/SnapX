@@ -1,0 +1,27 @@
+project_id = "pioepofmuuzftnpnwqhe"
+
+# The Razorpay webhook is called by Razorpay, not by a signed-in browser, so it
+# must not require a Supabase JWT. Every other function requires one.
+[functions.create-subscription]
+enabled = true
+verify_jwt = true
+
+[functions.razorpay-webhook]
+enabled = true
+verify_jwt = false
+
+[functions.cancel-subscription]
+enabled = true
+verify_jwt = true
+
+[functions.change-subscription]
+enabled = true
+verify_jwt = true
+
+[functions.delete-account]
+enabled = true
+verify_jwt = true
+
+[functions.entitlement]
+enabled = true
+verify_jwt = true

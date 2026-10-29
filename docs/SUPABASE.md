@@ -1,7 +1,8 @@
 # Supabase setup
 
-The site uses Supabase only for accounts: Google sign-in, eight-digit email
-codes, and reading the signed-in user's plan. Media never goes near it.
+The site uses Supabase for accounts and billing: Google sign-in, eight-digit
+email codes, the signed-in user's plan, Razorpay subscription state and the
+short-lived entitlement token. Media never goes near it.
 
 The browser bundle gets two values, both safe to expose:
 
@@ -13,7 +14,8 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 Copy `.env.example` to `.env` for local work. Add the same two variables in
 Vercel → Project → Settings → Environment Variables for **Production** and
 **Preview**. A secret or service-role key must never be added to this project:
-the site is static and has no server to protect it.
+the site is static and has no server to protect it. Billing secrets live only
+in Supabase (see [PAYMENTS.md](PAYMENTS.md)).
 
 ## 1. Redirect allowlist
 
@@ -74,21 +76,59 @@ idempotent and:
 - adds a trigger on `auth.users` that inserts a profile and a `free` / `active`
   subscription row for every new user;
 - backfills users created before the trigger;
-- enables row-level security with select-own-row policies;
-- grants no client writes. The payment webhook and the future delete-account
-  function use the service-role key on the server.
+- adds the billing columns (`provider_subscription_id`, `provider_plan_id`,
+  `started_at`, `pending_plan`, `pending_plan_at`, `last_payment_at`,
+  `last_payment_amount`, `last_payment_currency`) and a unique index on
+  `provider_subscription_id`;
+- creates `public.payment_events`, the webhook idempotency ledger keyed by the
+  Razorpay event id, with `user_id` set to null when an account is deleted;
+- enables row-level security with select-own-row policies on profiles and
+  subscriptions, and **no** browser access at all to `payment_events`;
+- grants no client writes. The Edge Functions use the service-role key on the
+  server.
 
 Verify in the SQL editor:
 
 ```sql
 select count(*) from public.subscriptions;          -- one per user
 select * from public.subscriptions limit 1;         -- plan = 'free'
+select count(*) from public.payment_events;         -- grows with webhooks
 ```
 
 Sign in once, then check `/account.html` shows **Free**. If it shows
 "unavailable", the table, the trigger or the select policy is missing.
 
-## 4. CSP
+## 4. Edge Functions and billing secrets
+
+The six functions are deployed from `supabase/functions/` and configured in
+`supabase/config.toml`. `razorpay-webhook` has `verify_jwt = false` because
+Razorpay calls it; every other function requires a Supabase JWT.
+
+```bash
+supabase link --project-ref pioepofmuuzftnpnwqhe
+supabase functions deploy create-subscription
+supabase functions deploy razorpay-webhook --no-verify-jwt
+supabase functions deploy cancel-subscription
+supabase functions deploy change-subscription
+supabase functions deploy delete-account
+supabase functions deploy entitlement
+```
+
+Set these Supabase secrets, never Vercel or `.env`:
+
+```
+RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET
+RAZORPAY_WEBHOOK_SECRET
+RAZORPAY_PLAN_PRO
+RAZORPAY_PLAN_MAX
+ENTITLEMENT_PRIVATE_KEY
+```
+
+The full setup, webhook event list, test cards, upgrade/downgrade behaviour and
+acceptance checks are in [PAYMENTS.md](PAYMENTS.md).
+
+## 5. CSP
 
 `vercel.json` allows `connect-src` to the project host over HTTPS and WSS. If
 you move to a different Supabase project, update both URLs in the
@@ -96,7 +136,11 @@ you move to a different Supabase project, update both URLs in the
 error while working in `npm run dev` (the dev server does not apply Vercel
 headers).
 
-## 5. Manual checks the owner must do
+The same policy allows `https://*.razorpay.com` in `script-src`,
+`connect-src`, `font-src` and `frame-src`, and `'unsafe-inline'` in `style-src`
+for Razorpay Checkout. Do not remove those while payments are enabled.
+
+## 6. Manual checks the owner must do
 
 Verified on the live project on 28 October 2026:
 
@@ -104,12 +148,14 @@ Verified on the live project on 28 October 2026:
 - [x] Eight-digit email code arrives, verifies, and Supabase redirects work.
 - [x] A brand-new account shows Free on `/account.html`.
 
-Still worth a quick check after any auth change:
+Still worth a quick check after any auth or billing change:
 
 - [ ] Header switches to the avatar menu without a reload, and sign-out clears it.
 - [ ] Wrong code, expired code and repeated sends show the friendly messages.
-- [ ] Deleting an account opens the mailto with the user ID (server-side delete
-      arrives with Part B).
+- [ ] Deleting an account calls `delete-account`, removes the auth user, and
+      leaves the payment ledger with a null `user_id`.
+- [ ] Razorpay test payment flips the plan and the account page shows the next
+      charge date and last payment.
 
 ## Troubleshooting
 
@@ -121,3 +167,6 @@ Still worth a quick check after any auth change:
 | `Email signups are disabled` | Email provider off, or `shouldCreateUser` disabled in Supabase. |
 | Works locally, fails on Vercel | CSP host or env vars differ; check the browser console for `connect-src`. |
 | Header stays "Sign in" after returning | Session was not created: check the callback page status text, then the redirect allowlist. |
+| Checkout opens but the webhook never updates the plan | Webhook URL, secret or event list wrong; inspect `payment_events` and the Razorpay dashboard delivery log. |
+| `entitlement` returns `500 signing_failed` | `ENTITLEMENT_PRIVATE_KEY` missing or not a PKCS#8 Ed25519 PEM. |
+| A function returns `401` for a signed-in user | `verify_jwt` is on and the `Authorization` header was not sent; the browser client adds it automatically. |

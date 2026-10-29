@@ -42,7 +42,7 @@ export const SITE = {
   SHOW_PRESS_KIT: false,
   AUTH_ENABLED: true,
   ENABLED_SIGNIN: ['google', 'email'], // add 'microsoft' or 'apple' when wired
-  PAYMENTS_ENABLED: false, // Part B flips this on with Razorpay
+  PAYMENTS_ENABLED: true, // Razorpay test mode; live keys are Supabase secrets
 
   /* ---------- Product facts ---------- */
   VERSION: '1.4.0',
