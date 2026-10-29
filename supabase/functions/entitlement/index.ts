@@ -2,14 +2,23 @@ import { json, methodNotAllowed, preflight, unauthorized } from '../_shared/http
 import { serviceClient, userFromRequest } from '../_shared/clients.ts';
 import { requireEnv } from '../_shared/env.ts';
 import { signEntitlement } from '../_shared/token.ts';
-import { effectivePlan } from '../_shared/webhook.ts';
-
-const WEEK_SECONDS = 7 * 24 * 60 * 60;
 
 /**
- * Returns a short-lived Ed25519 token the extension can verify with the public
- * key. The plan is resolved from the server-side row, never from the request.
+ * Issues the signed plan pass the extension verifies.
+ *
+ * Contract: docs/PLAN_PASS_CONTRACT.md §2 and §3.
+ * - the plan comes from the server-side row, never from the request;
+ * - the only client input is the install id, and it is echoed into the pass so
+ *   a pass minted for one browser cannot be replayed in another;
+ * - paid and active -> exp = min(current_period_end + 3 days, now + 35 days);
+ *   everything else -> Free for 35 days.
  */
+
+const INSTALL_ID = /^[0-9a-f]{32}$/;
+const DAY_SECONDS = 24 * 60 * 60;
+const FREE_PASS_SECONDS = 35 * DAY_SECONDS;
+const PAID_GRACE_SECONDS = 3 * DAY_SECONDS;
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return preflight(req);
   if (req.method !== 'POST') return methodNotAllowed(req);
@@ -17,6 +26,16 @@ Deno.serve(async (req) => {
   try {
     const { user } = await userFromRequest(req);
     if (!user) return unauthorized(req);
+
+    const body = await req.json().catch(() => ({}));
+    const iid = typeof body?.iid === 'string' ? body.iid : '';
+    if (!INSTALL_ID.test(iid)) {
+      return json(
+        req,
+        { error: 'bad_iid', message: 'A 32-character install id is required.' },
+        400,
+      );
+    }
 
     const db = serviceClient();
     const { data: row, error } = await db
@@ -31,15 +50,22 @@ Deno.serve(async (req) => {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const plan = effectivePlan(row, Date.now());
-    const status = String(row?.status ?? 'active');
-    const payload = {
-      sub: user.id,
-      plan,
-      status,
-      exp: now + WEEK_SECONDS,
-      iat: now,
-    };
+    const status = String(row?.status ?? '').toLowerCase();
+    const rowPlan = String(row?.plan ?? '').toLowerCase();
+    const endMs = row?.current_period_end ? Date.parse(row.current_period_end) : Number.NaN;
+    const end = Number.isFinite(endMs) ? Math.floor(endMs / 1000) : 0;
+
+    const paid =
+      (rowPlan === 'pro' || rowPlan === 'max') &&
+      (status === 'active' || status === 'authenticated') &&
+      end > now;
+
+    const plan = paid ? rowPlan : 'free';
+    const exp = paid
+      ? Math.min(end + PAID_GRACE_SECONDS, now + FREE_PASS_SECONDS)
+      : now + FREE_PASS_SECONDS;
+
+    const payload = { v: 1, aud: 'snapx-ext', sub: user.id, plan, iid, iat: now, exp };
 
     let token: string;
     try {
@@ -53,7 +79,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    return json(req, { token, plan, status, exp: payload.exp });
+    return json(req, { token, plan, exp });
   } catch (error) {
     console.error('[entitlement] failed', (error as Error)?.message ?? 'Error');
     return json(req, { error: 'server_error', message: 'Try again in a moment.' }, 500);

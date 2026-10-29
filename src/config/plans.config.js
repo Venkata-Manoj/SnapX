@@ -29,8 +29,8 @@ export const PLANS = [
     features: [
       'Everything in Free',
       'All effects as they launch',
-      'Teams',
-      'X video calls', /* CONFIRM */
+      'Teams and X calls',
+      'Be right back freeze-frame',
     ],
     cta: { label: 'Get Pro', action: 'checkout' },
   },
@@ -40,7 +40,13 @@ export const PLANS = [
     priceINR: 149,
     period: 'month',
     tagline: "First in line for what's next.",
-    features: ['Everything in Pro', 'Early access to new effects and features', 'Priority support'],
+    features: [
+      'Everything in Pro',
+      'Teams and X calls',
+      'Be right back freeze-frame',
+      'Early access to new effects and features',
+      'Priority support',
+    ],
     cta: { label: 'Get Max', action: 'checkout' },
   },
 ];

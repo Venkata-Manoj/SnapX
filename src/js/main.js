@@ -1,4 +1,5 @@
 import '../styles/main.css';
+import '../extension-bridge.js';
 import { initNav } from './nav.js';
 import { initReveal } from './reveal.js';
 import { initCopy } from './copy.js';

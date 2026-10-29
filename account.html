@@ -109,7 +109,12 @@
 
           <article class="card account-card" aria-labelledby="extension-title">
             <h2 class="h3" id="extension-title">Connect the extension</h2>
-            <p>Open the {{BRAND_NAME}} popup and click <strong>Sign in</strong>. It will bring you back here.</p>
+            <div data-extension-connect aria-live="polite">
+              <p data-extension-idle>Open the {{BRAND_NAME}} popup and click <strong>Connect</strong>. It will bring you back here.</p>
+              <p data-extension-connecting hidden>Connecting {{BRAND_NAME}}…</p>
+              <p data-extension-connected hidden></p>
+              <p data-extension-error hidden></p>
+            </div>
             <p class="small muted">The extension only checks your plan when you are signed in. Your video, audio and room pictures stay on your device.</p>
           </article>
         </div>

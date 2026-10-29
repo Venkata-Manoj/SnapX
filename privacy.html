@@ -53,7 +53,7 @@
       <p>Your settings are saved with <code>chrome.storage</code>, along with a learned picture of your room for each site and camera, so it can start faster next time. You can clear the room at any time in the popup: Room → Forget room. Removing the extension deletes everything.</p>
 
       <h3>What it sends when you sign in</h3>
-      <p>If you sign in, the extension may contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> to check your plan and fetch a signed plan pass. It sends your account token for that check. It never sends video, audio or images. Signed out, the extension makes no network requests at all.</p>
+      <p>The extension itself makes no network requests. When you're signed in on this website, the website gives the extension a signed plan check (your account ID, plan and an expiry date). Video, audio and images never leave your device.</p>
 
       <h2>Your account</h2>
       <p>An account is optional. You need one to buy or manage a paid plan, or to connect the extension to your plan.</p>
@@ -113,7 +113,7 @@
       <p>We operate from India. The processors listed above may store or process data in other countries. Where that happens, they do so under their own safeguards and terms.</p>
 
       <h2>Permissions explained</h2>
-      <p><code>storage</code> saves your settings and room picture. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Teams, Zoom and X call pages, where {{BRAND_NAME}} provides its processed camera. The extension may also contact <code>{{SUPABASE_HOST}}</code> and <code>{{SITE_HOST}}</code> only to check your plan, and only when you are signed in.</p>
+      <p><code>storage</code> saves your settings and room picture. <code>offscreen</code> runs the AI models in a background page. Site access is limited to Google Meet, Teams, Zoom and X call pages, where {{BRAND_NAME}} provides its processed camera. Site access to <code>{{SITE_HOST}}</code>: receives the signed plan check from this website.</p>
 
       <h2>Changes</h2>
       <p>If this policy changes, we post the new version here with a new effective date. Material changes that affect your rights will be announced by email or on this page before they take effect.</p>

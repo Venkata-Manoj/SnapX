@@ -1,6 +1,7 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
 import { appUrl } from '../lib/auth.js';
 import { readFunctionError } from '../lib/billing.js';
+import { requestPass } from '../extension-bridge.js';
 
 /**
  * Razorpay Checkout for the pricing page.
@@ -132,6 +133,9 @@ async function confirmPayment(plan) {
       setStatus(`You're on ${PLAN_NAMES[plan]}. Your plan is active.`, 'ok');
 
       offerManage();
+      // Unlock the extension without a reload. The bridge no-ops when the
+      // extension is not installed or the user is signed out.
+      void requestPass(false);
       return;
     }
 

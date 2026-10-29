@@ -236,42 +236,59 @@ await test('the ledger insert fills every not-null column', () => {
   assert.equal(ledgerRow('evt_2', 'payment.failed', {}).provider_subscription_id, null);
 });
 
-await test('Ed25519 entitlement token verifies with the public key', async () => {
+await test('Ed25519 plan pass verifies with the public key', async () => {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
   const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const now = Math.floor(Date.now() / 1000);
   const payload = {
+    v: 1,
+    aud: 'snapx-ext',
     sub: '11111111-1111-4111-8111-111111111111',
     plan: 'pro',
-    status: 'active',
-    exp: Math.floor(Date.now() / 1000) + 604800,
-    iat: Math.floor(Date.now() / 1000),
+    iid: 'a'.repeat(32),
+    iat: now,
+    exp: now + 33 * 86400,
   };
 
   const token = await signEntitlement(payload, pem);
   const parts = token.split('.');
-  assert.equal(parts.length, 3);
+  assert.equal(parts.length, 2);
 
-  const header = JSON.parse(decodeBase64Url(parts[0]).toString('utf8'));
-  assert.deepEqual(header, { alg: 'EdDSA', typ: 'JWT' });
-
-  const decoded = JSON.parse(decodeBase64Url(parts[1]).toString('utf8'));
+  const decoded = JSON.parse(decodeBase64Url(parts[0]).toString('utf8'));
   assert.deepEqual(decoded, payload);
 
-  const signature = decodeBase64Url(parts[2]);
-  const signingInput = Buffer.from(`${parts[0]}.${parts[1]}`, 'utf8');
-  assert.equal(verifyEd25519(null, signingInput, publicKey, signature), true);
+  const signature = decodeBase64Url(parts[1]);
+  assert.equal(signature.length, 64);
+  assert.equal(verifyEd25519(null, Buffer.from(parts[0], 'utf8'), publicKey, signature), true);
   assert.equal(
-    verifyEd25519(null, Buffer.from(`${parts[0]}.${parts[1]}x`, 'utf8'), publicKey, signature),
+    verifyEd25519(null, Buffer.from(`${parts[0]}x`, 'utf8'), publicKey, signature),
     false,
   );
+});
+
+await test('Ed25519 accepts the 64-hex pass-private.hex seed', async () => {
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const der = privateKey.export({ type: 'pkcs8', format: 'der' });
+  const seed = Buffer.from(der).subarray(-32).toString('hex');
+
+  const token = await signEntitlement(
+    { v: 1, aud: 'snapx-ext', sub: 'x', plan: 'free', iid: 'b'.repeat(32), iat: 1, exp: 2 },
+    seed,
+  );
+  const [body, signature] = token.split('.');
+  assert.equal(token.split('.').length, 2);
+  assert.equal(verifyEd25519(null, Buffer.from(body), publicKey, decodeBase64Url(signature)), true);
 });
 
 await test('Ed25519 accepts a secret with literal \\n escapes', async () => {
   const { privateKey } = generateKeyPairSync('ed25519');
   const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
   const escaped = pem.replace(/\n/g, '\\n');
-  const token = await signEntitlement({ sub: 'x', plan: 'free', status: 'active', exp: 1, iat: 1 }, escaped);
-  assert.equal(token.split('.').length, 3);
+  const token = await signEntitlement(
+    { v: 1, aud: 'snapx-ext', sub: 'x', plan: 'free', iid: 'c'.repeat(32), iat: 1, exp: 2 },
+    escaped,
+  );
+  assert.equal(token.split('.').length, 2);
 });
 
 await test('the schema keeps the payment ledger private and nullable', () => {

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { appUrl, authErrorMessage, displayName, formatDate, providerName, setAvatar } from '../lib/auth.js';
 import { formatMoney, planName, readFunctionError } from '../lib/billing.js';
+import { extensionReady, lastPassResult } from '../extension-bridge.js';
 
 const loading = document.querySelector('[data-account-loading]');
 const body = document.querySelector('[data-account-body]');
@@ -25,6 +26,12 @@ const planPaymentRow = document.querySelector('[data-plan-payment-row]');
 const planPayment = document.querySelector('[data-plan-payment]');
 const planUpgrade = document.querySelector('[data-plan-upgrade]');
 const manageButton = document.querySelector('[data-manage]');
+
+const extensionPanel = document.querySelector('[data-extension-connect]');
+const extensionIdle = document.querySelector('[data-extension-idle]');
+const extensionConnecting = document.querySelector('[data-extension-connecting]');
+const extensionConnected = document.querySelector('[data-extension-connected]');
+const extensionError = document.querySelector('[data-extension-error]');
 
 const manageDialog = document.querySelector('[data-manage-dialog]');
 const manageCurrent = document.querySelector('[data-manage-current]');
@@ -496,6 +503,105 @@ signOutButton?.addEventListener('click', async () => {
   window.location.assign(appUrl(''));
 });
 
+const EXTENSION_ERRORS = {
+  'bad pass': 'The plan check was rejected. Try again, or update SnapX.',
+  'bad signature': 'The plan check was rejected. Try again, or update SnapX.',
+  'pass is for another install': 'That plan check was for a different install. Try again.',
+  'pass expired': 'The plan check expired. Reload this page.',
+  'extension unavailable': 'SnapX stopped responding. Reload the page and try again.',
+};
+
+function showExtension(state, message = '') {
+  const views = [
+    ['idle', extensionIdle],
+    ['connecting', extensionConnecting],
+    ['connected', extensionConnected],
+    ['error', extensionError],
+  ];
+
+  for (const [name, element] of views) {
+    if (element) element.hidden = name !== state;
+  }
+
+  if (state === 'connected' && extensionConnected) extensionConnected.textContent = message;
+  if (state === 'error' && extensionError) extensionError.textContent = message;
+}
+
+function extensionErrorMessage(error) {
+  const text = String(error || '').trim();
+  if (!text) return 'Could not connect. Reload the page and try again.';
+  return EXTENSION_ERRORS[text] || `Could not connect: ${text}`;
+}
+
+function showPassResult(result) {
+  if (!result) return;
+
+  if (result.ok) {
+    const plan = planName(result.plan || 'free');
+    showExtension(
+      'connected',
+      `Connected. Your plan: ${plan}. You can close this tab and go back to your call.`,
+    );
+    return;
+  }
+
+  showExtension('error', extensionErrorMessage(result.error));
+}
+
+/**
+ * The three states of the connect card, per docs/SITE_CONNECT_PROMPT.md item 4.
+ * The bridge does the messaging; this only renders what it reports.
+ */
+function initExtensionConnect() {
+  if (!extensionPanel) return;
+  if (new URLSearchParams(window.location.search).get('connect') !== 'extension') return;
+
+  let helloTimer = 0;
+  let resultTimer = 0;
+
+  const clearTimers = () => {
+    window.clearTimeout(helloTimer);
+    window.clearTimeout(resultTimer);
+  };
+
+  const noResult = () =>
+    showExtension('error', 'The plan check did not arrive. Reload the page and try again.');
+
+  const notInstalled = () =>
+    showExtension(
+      'error',
+      "SnapX isn't installed in this Chrome. Install it, then reload this page.",
+    );
+
+  // The latest event wins: a slow content script may say hello after the 3 s
+  // mark, and a slow function may answer after the result timer.
+  document.addEventListener('snapx-connect-hello', () => {
+    clearTimers();
+    showExtension('connecting');
+    resultTimer = window.setTimeout(noResult, 10000);
+  });
+
+  document.addEventListener('snapx-connect-result', (event) => {
+    clearTimers();
+    showPassResult(event.detail);
+  });
+
+  const recent = lastPassResult();
+  if (recent) {
+    showPassResult(recent);
+    return;
+  }
+
+  showExtension('connecting');
+
+  if (extensionReady()) {
+    resultTimer = window.setTimeout(noResult, 10000);
+    return;
+  }
+
+  helloTimer = window.setTimeout(notInstalled, 3000);
+}
+
 async function init() {
   if (!supabase) {
     if (loading) loading.hidden = true;
@@ -514,6 +620,8 @@ async function init() {
 
   if (loading) loading.hidden = true;
   if (body) body.hidden = false;
+
+  initExtensionConnect();
 
   await loadPlan(data.session.user);
 }

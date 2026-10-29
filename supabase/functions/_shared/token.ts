@@ -1,6 +1,24 @@
-/** Ed25519 compact token signing for the entitlement endpoint. */
+/**
+ * Ed25519 plan-pass signing.
+ *
+ * The token format is fixed by docs/PLAN_PASS_CONTRACT.md:
+ *
+ *   token = b64url(payloadJSON) + "." + b64url(ed25519_sign(ascii(b64url(payloadJSON))))
+ *
+ * Two parts, no JWT header. The extension verifies exactly this and rejects a
+ * three-part token before it even checks the signature.
+ *
+ * ENTITLEMENT_PRIVATE_KEY may be either the 64-hex seed from `pass-private.hex`
+ * or a PKCS8 PEM (with real newlines or literal `\n`). Both are converted to a
+ * PKCS8 key for Web Crypto, so the secret can be rotated without changing code.
+ */
 
 const encoder = new TextEncoder();
+
+/** DER prefix for an Ed25519 PKCS8 private key; the 32-byte seed follows it. */
+const PKCS8_ED25519_PREFIX = new Uint8Array([
+  0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20,
+]);
 
 export function base64Url(bytes: Uint8Array): string {
   let binary = '';
@@ -12,33 +30,45 @@ export function base64UrlJson(value: unknown): string {
   return base64Url(encoder.encode(JSON.stringify(value)));
 }
 
-async function importPrivateKey(pem: string): Promise<CryptoKey> {
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+async function importPrivateKey(value: string): Promise<CryptoKey> {
   // Secrets set from a shell often contain literal \n rather than newlines.
-  const normalised = pem.replace(/\\n/g, '\n').trim();
-  const body = normalised
-    .replace(/-----BEGIN [^-]+-----/g, '')
-    .replace(/-----END [^-]+-----/g, '')
-    .replace(/\s+/g, '');
+  const normalised = value.replace(/\\n/g, '\n').trim();
+  if (!normalised) throw new Error('ENTITLEMENT_PRIVATE_KEY is empty');
 
-  if (!body) throw new Error('ENTITLEMENT_PRIVATE_KEY is empty');
+  let der: Uint8Array;
 
-  const der = Uint8Array.from(atob(body), (char) => char.charCodeAt(0));
+  if (/^[0-9a-f]{64}$/i.test(normalised)) {
+    der = new Uint8Array(PKCS8_ED25519_PREFIX.length + 32);
+    der.set(PKCS8_ED25519_PREFIX);
+    der.set(hexToBytes(normalised), PKCS8_ED25519_PREFIX.length);
+  } else {
+    const body = normalised
+      .replace(/-----BEGIN [^-]+-----/g, '')
+      .replace(/-----END [^-]+-----/g, '')
+      .replace(/\s+/g, '');
+
+    if (!body) throw new Error('ENTITLEMENT_PRIVATE_KEY is empty');
+    der = Uint8Array.from(atob(body), (char) => char.charCodeAt(0));
+  }
+
   return await crypto.subtle.importKey('pkcs8', der, { name: 'Ed25519' }, false, ['sign']);
 }
 
-/** Sign { sub, plan, status, exp, iat } as header.payload.signature. */
+/** Sign the contract payload as a two-part compact pass. */
 export async function signEntitlement(
   payload: Record<string, unknown>,
-  privateKeyPem: string,
+  privateKey: string,
 ): Promise<string> {
-  const header = { alg: 'EdDSA', typ: 'JWT' };
-  const signingInput = `${base64UrlJson(header)}.${base64UrlJson(payload)}`;
-  const key = await importPrivateKey(privateKeyPem);
-  const signature = await crypto.subtle.sign(
-    { name: 'Ed25519' },
-    key,
-    encoder.encode(signingInput),
-  );
-
-  return `${signingInput}.${base64Url(new Uint8Array(signature))}`;
+  const body = base64UrlJson(payload);
+  const key = await importPrivateKey(privateKey);
+  const signature = await crypto.subtle.sign({ name: 'Ed25519' }, key, encoder.encode(body));
+  return `${body}.${base64Url(new Uint8Array(signature))}`;
 }

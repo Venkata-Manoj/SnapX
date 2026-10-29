@@ -71,19 +71,41 @@ Razorpay also expects the business details, the Terms, Privacy and Refund pages
 and a postal address before it activates live payments. `OPERATOR_POSTAL_ADDRESS`
 in `src/config/site.config.js` is still empty; fill it before going live.
 
-### 2.2 Ed25519 keypair for the entitlement token
+### 2.2 Ed25519 keypair for the plan pass
 
-Run once, outside the repo:
+The extension does not fetch the public key: it has one compiled in
+(`keys/pass-public.hex` in the SnapX build). The site key **must** be the
+private half of that exact key, or every pass fails with `bad signature` even
+though the function returns 200.
 
-```bash
-openssl genpkey -algorithm ED25519 -out entitlement-private.pem
-openssl pkey -in entitlement-private.pem -pubout -out entitlement-public.pem
+The current extension key is:
+
+```
+d8451c06b55376d9bd82a3bc1dec21f899be0533102e7972ea50b25922c5126a
 ```
 
-`entitlement-private.pem` is a PKCS#8 PEM. Keep it out of git; `.gitignore`
-already excludes `*.pem`. Give `entitlement-public.pem` to the extension. The
-extension verifies the token signature with it and checks `exp`, `sub` and
-`plan`; it never asks the site for a plan without a token.
+The simplest source of truth is the extension's own `pass-private.hex` — 64 hex
+characters. Put that value in `supabase/.env.secrets` as a bare line:
+
+```
+ENTITLEMENT_PRIVATE_KEY=<64 hex characters>
+```
+
+A PKCS#8 PEM also works (real newlines, or `\n` escapes in the env file), but
+the seed is easier to compare and cannot be wrapped in headers by mistake. A
+PEM whose body is a bare seed is invalid: the function cannot parse it and
+returns `500 signing_failed`.
+
+To derive the public key from whatever you have, without printing the secret:
+
+```bash
+npm run check:entitlement
+```
+
+It fails on the first line that matters if the key does not match the extension.
+`supabase/entitlement-public.pem` is the public half of the configured key
+(git-ignored); give it to whoever builds the extension only when rotating both
+sides together. See §6 for the rotation order.
 
 ### 2.3 Supabase secrets
 
@@ -319,26 +341,63 @@ npm run build          # placeholder gate + secret gate
 npm run check          # linkinator
 ```
 
-## 5. Entitlement check by hand
+## 5. Plan pass (entitlement)
 
-```bash
-SUPABASE_URL=https://pioepofmuuzftnpnwqhe.supabase.co
-PUBLISHABLE_KEY=sb_publishable_…
+The extension never talks to Supabase. The site asks `entitlement` for a pass and
+hands it to the extension over `window.postMessage`
+(`src/extension-bridge.js`). The format is fixed by
+`docs/PLAN_PASS_CONTRACT.md`:
 
-curl -sS -X POST "$SUPABASE_URL/functions/v1/entitlement" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "apikey: $PUBLISHABLE_KEY"
+```
+token   = b64url(payload) + "." + b64url(ed25519_sign(ascii(b64url(payload))))
+payload = { v: 1, aud: "snapx-ext", sub, plan, iid, iat, exp }
 ```
 
-Verify a returned token with the public key:
+- Paid and active: `exp = min(current_period_end + 3 days, now + 35 days)`.
+- Free, cancelled, halted or past due: `plan = "free"`, `exp = now + 35 days`.
+- `iid` is the extension's 32-hex install id and is echoed into the pass. A pass
+  minted for one browser is rejected by another.
+
+`ENTITLEMENT_PRIVATE_KEY` accepts either the 64-hex seed from `pass-private.hex`
+or a PKCS8 PEM. It must be the private half of `keys/pass-public.hex` in the
+extension build, or the extension rejects every pass with `bad signature`.
+
+```powershell
+npm run check:entitlement
+```
+
+This proves the key matches the extension, that Supabase holds the same value
+(through the sha256 that `secrets list` prints, so no secret is output), and that
+the live function returns 401 without a JWT, 400 for a bad `iid`, and a valid
+two-part pass for Free, Pro, Max, a long period, a cancellation and a failed
+payment. It creates and deletes a throwaway user.
+
+By hand:
+
+```bash
+curl -sS -X POST "$SUPABASE_URL/functions/v1/entitlement" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "apikey: $PUBLISHABLE_KEY" \
+  -H "content-type: application/json" \
+  -d '{"iid":"0123456789abcdef0123456789abcdef"}'
+```
+
+Verify the two-part token with the extension's public key:
 
 ```bash
 node -e "
-const { verify } = require('node:crypto');
-const fs = require('node:fs');
-const [h, p, s] = process.argv[1].split('.');
-const sig = Buffer.from(s.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
-console.log(verify(null, Buffer.from(h + '.' + p), fs.readFileSync('entitlement-public.pem'), sig));
+const { createPublicKey, verify } = require('node:crypto');
+const key = createPublicKey({
+  key: Buffer.concat([
+    Buffer.from('302a300506032b6570032100', 'hex'),
+    Buffer.from(process.env.PASS_PUBLIC_KEY, 'hex'),
+  ]),
+  format: 'der',
+  type: 'spki',
+});
+const [body, sig] = process.argv[1].split('.');
+console.log(verify(null, Buffer.from(body), key,
+  Buffer.from(sig.replace(/-/g, '+').replace(/_/g, '/'), 'base64')));
 " "$TOKEN"
 ```
 
@@ -376,6 +435,14 @@ console.log(verify(null, Buffer.from(h + '.' + p), fs.readFileSync('entitlement-
   `X-Razorpay-Signature` HMAC. Change it in Razorpay and Supabase together;
   Razorpay retries old events with the old secret, so keep the old value until
   retries stop.
+- **Rotating the plan-pass key**: generate a new pair in the extension repo
+  (`node tools/gen-pass-key.mjs keys`), put the 64-hex private seed in
+  `supabase/.env.secrets` as `ENTITLEMENT_PRIVATE_KEY`, push it with
+  `supabase secrets set --env-file supabase/.env.secrets`, then rebuild and
+  republish the extension with the new `keys/pass-public.hex`. Run
+  `npm run check:entitlement` before publishing: it fails while the site key and
+  the extension key disagree. Existing passes stop verifying on the new build;
+  users reconnect once.
 - **Failed handler**: inspect `select id, event, error, received_at from
   public.payment_events where error is not null order by received_at desc`.
   Fix the function and replay the event from the Razorpay dashboard; the
