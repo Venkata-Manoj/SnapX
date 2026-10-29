@@ -22,6 +22,7 @@ import {
   unixToIso,
 } from '../supabase/functions/_shared/webhook.ts';
 import { signEntitlement } from '../supabase/functions/_shared/token.ts';
+import { checkoutGate } from '../supabase/functions/_shared/checkout.ts';
 
 let passed = 0;
 const test = async (name, fn) => {
@@ -93,6 +94,65 @@ await test('entitlement is Free when expired, failed or not active', () => {
   assert.equal(effectivePlan({ plan: 'pro', status: 'paused', current_period_end: future }), 'free');
   assert.equal(effectivePlan({ plan: 'free', status: 'active', current_period_end: future }), 'free');
   assert.equal(effectivePlan(null), 'free');
+});
+
+await test('a Free signup row does not block the first checkout', () => {
+  // The signup trigger writes plan=free, status=active. That is not a plan.
+  assert.deepEqual(checkoutGate({ plan: 'free', status: 'active' }, 'plan_pro'), {
+    action: 'create',
+  });
+  assert.deepEqual(checkoutGate(null, 'plan_pro'), { action: 'create' });
+});
+
+await test('an active paid plan blocks a second subscription', () => {
+  const future = new Date(Date.now() + 86400000).toISOString();
+  assert.deepEqual(
+    checkoutGate(
+      {
+        plan: 'pro',
+        status: 'active',
+        current_period_end: future,
+        provider_subscription_id: 'sub_1',
+      },
+      'plan_pro',
+    ),
+    { action: 'block' },
+  );
+  assert.deepEqual(
+    checkoutGate(
+      { plan: 'max', status: 'authenticated', provider_subscription_id: 'sub_2' },
+      'plan_max',
+    ),
+    { action: 'block' },
+  );
+});
+
+await test('an unfinished checkout is reused for the same plan', () => {
+  const row = {
+    plan: 'free',
+    status: 'created',
+    provider_subscription_id: 'sub_3',
+    provider_plan_id: 'plan_pro',
+  };
+
+  assert.deepEqual(checkoutGate(row, 'plan_pro'), { action: 'reuse', subscriptionId: 'sub_3' });
+  assert.deepEqual(checkoutGate(row, 'plan_max'), { action: 'create' });
+});
+
+await test('an ended paid plan allows a new checkout', () => {
+  const past = new Date(Date.now() - 86400000).toISOString();
+  assert.deepEqual(
+    checkoutGate(
+      {
+        plan: 'pro',
+        status: 'cancelled',
+        current_period_end: past,
+        provider_subscription_id: 'sub_4',
+      },
+      'plan_pro',
+    ),
+    { action: 'create' },
+  );
 });
 
 await test('a scheduled downgrade holds the paid plan until the period ends', () => {

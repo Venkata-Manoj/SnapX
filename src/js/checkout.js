@@ -57,6 +57,22 @@ function restoreButtons() {
   buttons.forEach((button) => setButtonBusy(button, false));
 }
 
+/**
+ * After a payment (or when the user already has a plan), the CTA stops being a
+ * checkout trigger and becomes the way to the account page. A second click must
+ * not create a second subscription.
+ */
+function offerManage() {
+  if (!currentButton) return;
+  currentButton.textContent = 'Manage your plan';
+  currentButton.href = appUrl('account.html');
+  currentButton.removeAttribute('data-checkout');
+  currentButton.removeAttribute('aria-disabled');
+  currentButton.removeAttribute('aria-busy');
+  currentButton.classList.remove('is-busy', 'btn--primary');
+  currentButton.classList.add('btn--secondary');
+}
+
 function goToLogin(plan) {
   const next = encodeURIComponent(`${window.location.pathname}#${plan}`);
   window.location.assign(`${appUrl('login.html')}?next=${next}`);
@@ -115,15 +131,7 @@ async function confirmPayment(plan) {
       busy = false;
       setStatus(`You're on ${PLAN_NAMES[plan]}. Your plan is active.`, 'ok');
 
-      if (currentButton) {
-        currentButton.textContent = 'Manage your plan';
-        currentButton.href = appUrl('account.html');
-        currentButton.removeAttribute('data-checkout');
-        currentButton.removeAttribute('aria-disabled');
-        currentButton.removeAttribute('aria-busy');
-        currentButton.classList.remove('is-busy', 'btn--primary');
-        currentButton.classList.add('btn--secondary');
-      }
+      offerManage();
       return;
     }
 
@@ -136,15 +144,7 @@ async function confirmPayment(plan) {
 
   // The handler fired, so treat the payment as taken: point the CTA at the
   // account page instead of allowing a second subscription to be created.
-  if (currentButton) {
-    currentButton.textContent = 'Manage your plan';
-    currentButton.href = appUrl('account.html');
-    currentButton.removeAttribute('data-checkout');
-    currentButton.removeAttribute('aria-disabled');
-    currentButton.removeAttribute('aria-busy');
-    currentButton.classList.remove('is-busy', 'btn--primary');
-    currentButton.classList.add('btn--secondary');
-  }
+  offerManage();
 }
 
 async function startCheckout(plan, button) {
@@ -188,8 +188,9 @@ async function startCheckout(plan, button) {
     if (info.status === 409) {
       setStatus(
         info.message || 'You already have a plan. Manage or cancel it from your account page.',
-        'error',
+        'ok',
       );
+      offerManage();
       return;
     }
 

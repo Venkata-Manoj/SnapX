@@ -1,5 +1,6 @@
 import { json, methodNotAllowed, preflight, unauthorized } from '../_shared/http.ts';
 import { serviceClient, userFromRequest } from '../_shared/clients.ts';
+import { checkoutGate } from '../_shared/checkout.ts';
 import { planIdFor, razorpayKeyId, razorpayRequest } from '../_shared/razorpay.ts';
 
 const TOTAL_COUNT = 120; // ten years of monthly billing
@@ -29,7 +30,7 @@ Deno.serve(async (req) => {
     const db = serviceClient();
     const { data: row, error: readError } = await db
       .from('subscriptions')
-      .select('plan,status,current_period_end,provider_subscription_id')
+      .select('plan,status,current_period_end,provider_subscription_id,provider_plan_id')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -38,20 +39,10 @@ Deno.serve(async (req) => {
       return json(req, { error: 'server_error', message: 'Try again in a moment.' }, 500);
     }
 
-    const stillPaid = Boolean(
-      row &&
-        row.plan &&
-        row.plan !== 'free' &&
-        (!row.current_period_end || new Date(row.current_period_end).getTime() > Date.now()),
-    );
-    const inFlight = Boolean(
-      row &&
-        ['active', 'authenticated', 'pending', 'past_due', 'halted', 'paused'].includes(
-          String(row.status ?? ''),
-        ),
-    );
+    const planId = planIdFor(plan);
+    const gate = checkoutGate(row, planId);
 
-    if (stillPaid || inFlight) {
+    if (gate.action === 'block') {
       return json(
         req,
         {
@@ -62,7 +53,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const planId = planIdFor(plan);
+    // An abandoned checkout already has a subscription id; reopen it instead
+    // of creating a second one.
+    if (gate.action === 'reuse') {
+      return json(req, {
+        subscription_id: gate.subscriptionId,
+        key_id: razorpayKeyId(),
+      });
+    }
+
     const result = await razorpayRequest('POST', '/subscriptions', {
       plan_id: planId,
       total_count: TOTAL_COUNT,

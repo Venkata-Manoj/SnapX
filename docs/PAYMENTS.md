@@ -150,11 +150,14 @@ caller's JWT with `auth.getUser(token)` even when the gateway already did.
 `POST { "plan": "pro" | "max" }`, `Authorization: Bearer <access token>`.
 
 - `400 invalid_plan` — anything other than `pro` or `max`.
-- `409 already_subscribed` — a paid plan is live, or a subscription is in
-  flight (`active`, `authenticated`, `pending`, `past_due`, `halted`, `paused`).
+- `409 already_subscribed` — a paid plan is live (a future period end, or
+  `active`/`authenticated` with no end), or a real provider subscription is in
+  an open state (`active`, `authenticated`, `pending`, `past_due`, `halted`,
+  `paused`). The `free/active` row the signup trigger creates does not block.
 - `502 provider_error` — Razorpay refused or was unreachable.
 - `200 { subscription_id, key_id }` — nothing else. The key secret never leaves
-  the server.
+  the server. If an abandoned checkout already has a `created` subscription for
+  the same plan, that id is returned instead of creating a second one.
 
 It creates the subscription with `total_count: 120` (ten years of monthly
 billing), `customer_notify: 1` and `notes: { user_id, plan }`, then stores
