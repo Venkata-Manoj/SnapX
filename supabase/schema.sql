@@ -58,6 +58,13 @@ create unique index if not exists subscriptions_provider_subscription_id_key
   on public.subscriptions (provider_subscription_id)
   where provider_subscription_id is not null;
 
+-- The deployed table only stores these six states. Razorpay's `authenticated`,
+-- `paused` and `expired` are folded into them by the webhook before writing,
+-- so the constraint and `STORED_STATUSES` must stay in step.
+alter table public.subscriptions drop constraint if exists subscriptions_status_check;
+alter table public.subscriptions add constraint subscriptions_status_check
+  check (status in ('created', 'active', 'past_due', 'halted', 'cancelled', 'completed'));
+
 -- ---------- Payment events (webhook idempotency ledger) ----------
 --
 -- One row per Razorpay event, keyed by the X-Razorpay-Event-Id header. The
@@ -69,6 +76,8 @@ create unique index if not exists subscriptions_provider_subscription_id_key
 create table if not exists public.payment_events (
   id text primary key,
   event text not null,
+  event_type text,
+  provider text,
   user_id uuid references auth.users (id) on delete set null,
   provider_subscription_id text,
   payload jsonb not null default '{}'::jsonb,
@@ -78,6 +87,11 @@ create table if not exists public.payment_events (
 );
 
 alter table public.payment_events add column if not exists event text;
+-- event_type and provider are not nullable in the deployed table, so the
+-- webhook writes both on every event. Keep them here so a fresh project has
+-- the same shape as production.
+alter table public.payment_events add column if not exists event_type text;
+alter table public.payment_events add column if not exists provider text;
 alter table public.payment_events add column if not exists user_id uuid references auth.users (id) on delete set null;
 alter table public.payment_events add column if not exists provider_subscription_id text;
 alter table public.payment_events add column if not exists payload jsonb not null default '{}'::jsonb;

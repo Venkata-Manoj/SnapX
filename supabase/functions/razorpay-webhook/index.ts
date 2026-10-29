@@ -1,10 +1,12 @@
 import { serviceClient } from '../_shared/clients.ts';
 import { planIds, verifyWebhookSignature } from '../_shared/razorpay.ts';
 import {
+  ledgerRow,
   mapStatus,
   pendingPlanHolds,
   planFrom,
   sha256Hex,
+  storedStatus,
   summariseEvent,
   unixToIso,
 } from '../_shared/webhook.ts';
@@ -47,12 +49,9 @@ Deno.serve(async (req) => {
 
   // Idempotency: the primary key is the Razorpay event id. A replay is a
   // duplicate-key error and does nothing.
-  const { error: insertError } = await db.from('payment_events').insert({
-    id: eventId,
-    event,
-    provider_subscription_id: summary.subscription_id,
-    payload: summary,
-  });
+  const { error: insertError } = await db
+    .from('payment_events')
+    .insert(ledgerRow(eventId, event, summary));
 
   if (insertError) {
     if (insertError.code === '23505') return ok('duplicate');
@@ -112,7 +111,7 @@ async function applyEvent(db: ReturnType<typeof serviceClient>, body: any): Prom
   }
 
   const userId = String(row.user_id);
-  const status = mapStatus(event, subscription?.status ?? payment?.status);
+  const status = storedStatus(mapStatus(event, subscription?.status ?? payment?.status));
   let plan =
     planFrom(subscription?.plan_id, notes?.plan, planIds()) ??
     (row.plan === 'max' ? 'max' : row.plan === 'pro' ? 'pro' : 'free');

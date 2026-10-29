@@ -13,10 +13,13 @@ import { readFileSync } from 'node:fs';
 import {
   effectivePlan,
   hmacSha256Hex,
+  ledgerRow,
   mapStatus,
   pendingPlanHolds,
   planFrom,
   sha256Hex,
+  storedStatus,
+  STORED_STATUSES,
   summariseEvent,
   timingSafeEqual,
   unixToIso,
@@ -218,6 +221,21 @@ await test('payment ledger summary contains billing fields and no customer PII',
   assert.equal(text.includes('uuid'), false);
 });
 
+await test('the ledger insert fills every not-null column', () => {
+  // The deployed table has provider and event_type as not-null columns; an
+  // insert that omits them fails and Razorpay gets a 500 on every event.
+  const row = ledgerRow('evt_1', 'subscription.activated', { subscription_id: 'sub_1' });
+
+  assert.equal(row.id, 'evt_1');
+  assert.equal(row.event, 'subscription.activated');
+  assert.equal(row.event_type, 'subscription.activated');
+  assert.equal(row.provider, 'razorpay');
+  assert.equal(row.provider_subscription_id, 'sub_1');
+  assert.deepEqual(row.payload, { subscription_id: 'sub_1' });
+
+  assert.equal(ledgerRow('evt_2', 'payment.failed', {}).provider_subscription_id, null);
+});
+
 await test('Ed25519 entitlement token verifies with the public key', async () => {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
   const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
@@ -264,6 +282,27 @@ await test('the schema keeps the payment ledger private and nullable', () => {
   assert.match(sql, /alter table public\.payment_events enable row level security/);
   assert.match(sql, /revoke all on public\.payment_events from anon/);
   assert.match(sql, /revoke all on public\.payment_events from authenticated/);
+});
+
+await test('provider statuses the table rejects are folded before writing', () => {
+  // The deployed check constraint accepts six states only. Writing
+  // 'authenticated' failed on a real payment and the event was lost.
+  assert.equal(storedStatus('authenticated'), 'active');
+  assert.equal(storedStatus('paused'), 'halted');
+  assert.equal(storedStatus('pending'), 'past_due');
+  assert.equal(storedStatus('expired'), 'cancelled');
+  assert.equal(storedStatus('active'), 'active');
+  assert.equal(storedStatus('created'), 'created');
+
+  for (const status of ['created', 'active', 'past_due', 'halted', 'cancelled', 'completed']) {
+    assert.equal(storedStatus(status), status);
+  }
+
+  const sql = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+  const constraint = sql.match(/subscriptions_status_check\s+check \(status in \(([^)]+)\)\)/);
+  assert.ok(constraint, 'schema declares the status constraint');
+  const allowed = constraint[1].split(',').map((value) => value.trim().replace(/'/g, ''));
+  assert.deepEqual(allowed.sort(), [...STORED_STATUSES].sort());
 });
 
 console.log(`\n${passed} billing tests passed.`);

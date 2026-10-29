@@ -94,6 +94,35 @@ export function mapStatus(event: string, entityStatus?: string | null): string {
   );
 }
 
+/** The statuses the deployed table's check constraint accepts. */
+export const STORED_STATUSES = [
+  'created',
+  'active',
+  'past_due',
+  'halted',
+  'cancelled',
+  'completed',
+] as const;
+
+const STATUS_FALLBACK: Record<string, string> = {
+  authenticated: 'active',
+  pending: 'past_due',
+  paused: 'halted',
+  expired: 'cancelled',
+};
+
+/**
+ * Fold a provider status into one the table stores. Razorpay reports
+ * `authenticated` (mandate authorised, first charge pending), `paused` and
+ * `expired`; writing those fails the check constraint and the whole event is
+ * lost, so each maps to the nearest stored state. An authenticated mandate is
+ * live, so it stores as `active`.
+ */
+export function storedStatus(status: string): string {
+  if ((STORED_STATUSES as readonly string[]).includes(status)) return status;
+  return STATUS_FALLBACK[status] ?? 'active';
+}
+
 /** Prefer the plan id (survives plan changes), fall back to the original note. */
 export function planFrom(
   planId: string | null | undefined,
@@ -173,5 +202,25 @@ export function summariseEvent(body: unknown): Record<string, unknown> {
     currency: payment.currency ?? refund.currency ?? null,
     current_end: subscription.current_end ?? null,
     created_at: payment.created_at ?? refund.created_at ?? subscription.created_at ?? null,
+  };
+}
+
+/**
+ * The row written to `payment_events` before an event is applied. `provider`
+ * and `event_type` are not nullable in the deployed table, so they are always
+ * filled; `event` is kept because the ledger and the schema both read it.
+ */
+export function ledgerRow(
+  id: string,
+  event: string,
+  summary: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    id,
+    event,
+    event_type: event,
+    provider: 'razorpay',
+    provider_subscription_id: summary.subscription_id ?? null,
+    payload: summary,
   };
 }

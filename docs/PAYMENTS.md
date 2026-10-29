@@ -182,14 +182,20 @@ Status mapping:
 
 | Event | Stored status |
 |---|---|
-| `subscription.authenticated` | `authenticated` |
+| `subscription.authenticated` | `active` (an authorised mandate is live) |
 | `subscription.activated`, `subscription.charged`, `subscription.resumed` | `active` |
 | `subscription.pending`, `payment.failed` | `past_due` |
-| `subscription.halted` | `halted` |
-| `subscription.cancelled` | `cancelled` |
+| `subscription.halted`, `subscription.paused` | `halted` |
+| `subscription.cancelled`, `subscription.expired` | `cancelled` |
 | `subscription.completed` | `completed` |
-| `subscription.paused` | `paused` |
 | `subscription.updated` | the entity's status |
+
+The deployed `subscriptions` table has a `subscriptions_status_check`
+constraint that accepts only `created`, `active`, `past_due`, `halted`,
+`cancelled` and `completed`. Razorpay's `authenticated`, `paused` and
+`expired` are folded into those before the write (`storedStatus()` in
+`_shared/webhook.ts`); writing them raw fails the constraint and the event is
+lost. `schema.sql` declares the same constraint, so the two must stay in step.
 
 The plan comes from `subscription.plan_id` first, because it survives a plan
 change; `notes.plan` is the fallback. `current_period_end` comes from
@@ -205,6 +211,11 @@ change the plan; refunds stay a human decision under the refund policy.
 The ledger stores only `event`, subscription/payment/refund ids, `plan_id`,
 `status`, `amount`, `currency`, `current_end` and `created_at`. No name, email,
 phone, card or UPI data.
+
+The deployed table also carries not-null `provider` and `event_type` columns
+from its first draft. The handler fills both (`provider = 'razorpay'`,
+`event_type` = the event name); an insert that omits them fails and Razorpay
+receives a 500 for every event.
 
 ### `cancel-subscription`
 
