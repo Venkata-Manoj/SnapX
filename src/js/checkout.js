@@ -119,6 +119,7 @@ async function confirmPayment(plan) {
         currentButton.textContent = 'Manage your plan';
         currentButton.href = appUrl('account.html');
         currentButton.removeAttribute('data-checkout');
+        currentButton.removeAttribute('aria-disabled');
         currentButton.removeAttribute('aria-busy');
         currentButton.classList.remove('is-busy', 'btn--primary');
         currentButton.classList.add('btn--secondary');
@@ -131,8 +132,19 @@ async function confirmPayment(plan) {
 
   outcome = 'pending';
   busy = false;
-  restoreButtons();
   setStatus('Payment received, activating shortly. Refresh your account page in a minute.');
+
+  // The handler fired, so treat the payment as taken: point the CTA at the
+  // account page instead of allowing a second subscription to be created.
+  if (currentButton) {
+    currentButton.textContent = 'Manage your plan';
+    currentButton.href = appUrl('account.html');
+    currentButton.removeAttribute('data-checkout');
+    currentButton.removeAttribute('aria-disabled');
+    currentButton.removeAttribute('aria-busy');
+    currentButton.classList.remove('is-busy', 'btn--primary');
+    currentButton.classList.add('btn--secondary');
+  }
 }
 
 async function startCheckout(plan, button) {
@@ -161,6 +173,14 @@ async function startCheckout(plan, button) {
     restoreButtons();
 
     if (info.status === 401) {
+      goToLogin(plan);
+      return;
+    }
+
+    // A stale or revoked session can fail the token refresh before the function
+    // answers, so there is no 401 to read. Send the user to sign in again.
+    const { data: current } = await supabase.auth.getSession();
+    if (!current.session) {
       goToLogin(plan);
       return;
     }
@@ -243,10 +263,11 @@ async function init() {
 
   buttons.forEach((button) => {
     button.addEventListener('click', (event) => {
-      // Signed out: let the link go to /login.html?next=…#pro.
-      if (!session) return;
+      // Signed out, or already subscribed: let the link do its normal job.
+      const plan = button.dataset.checkout;
+      if (!session || !PLAN_NAMES[plan]) return;
       event.preventDefault();
-      startCheckout(button.dataset.checkout, button);
+      startCheckout(plan, button);
     });
   });
 
