@@ -344,11 +344,38 @@ console.log(verify(null, Buffer.from(h + '.' + p), fs.readFileSync('entitlement-
 
 ## 6. Operations
 
-- **Rotating keys**: update the Supabase secret, redeploy nothing (functions read
-  secrets at invocation), and update the key id returned by
-  `create-subscription` automatically. The webhook secret must be changed in
-  Razorpay and Supabase together; Razorpay retries old events with the old
-  secret, so keep the old value until retries stop.
+- **Rotating API keys**: Razorpay Dashboard → mode ribbon **Test Mode** →
+  **Account & Settings → API Keys** → **Generate new key**; choose to
+  deactivate the old key **immediately** (the alternative is 24 hours). The new
+  secret is shown once. Then, in this repo:
+
+  ```powershell
+  # 1. Put the new pair in the git-ignored env file (never in chat, never in git)
+  #    supabase/.env.secrets → RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+
+  # 2. Push every secret to the project
+  .\node_modules\.bin\supabase.cmd secrets set --env-file supabase/.env.secrets
+
+  # 3. Prove the three copies agree, and that the old pair is dead
+  $env:OLD_RAZORPAY_KEY_ID = 'rzp_test_…'      # the retired id
+  $env:OLD_RAZORPAY_KEY_SECRET = '…'           # the retired secret
+  npm run check:razorpay
+  ```
+
+  `check:razorpay` proves: Razorpay accepts the pair, both plan ids belong to
+  the account, every `RAZORPAY_*` value in Supabase is byte-identical to the
+  local file (`secrets list` prints sha256 of each value, so no secret is
+  printed), and the retired pair returns 401. Functions read secrets per
+  invocation, so no redeploy is needed; if the browser check below fails
+  anyway, redeploy `create-subscription` and `razorpay-webhook` and retry.
+  Finish by opening `/pricing.html`, signing in, and clicking **Get Pro**: if
+  the Razorpay modal opens, the deployed function handed the browser a key id
+  Razorpay accepts. Rotating API keys does not affect plans, subscriptions or
+  the webhook secret.
+- **Rotating the webhook secret**: a different secret, used only for the
+  `X-Razorpay-Signature` HMAC. Change it in Razorpay and Supabase together;
+  Razorpay retries old events with the old secret, so keep the old value until
+  retries stop.
 - **Failed handler**: inspect `select id, event, error, received_at from
   public.payment_events where error is not null order by received_at desc`.
   Fix the function and replay the event from the Razorpay dashboard; the
