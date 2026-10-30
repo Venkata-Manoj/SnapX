@@ -1,11 +1,14 @@
 import { serviceClient } from '../_shared/clients.ts';
 import { planIds, razorpayRequest, verifyWebhookSignature } from '../_shared/razorpay.ts';
 import {
+  isReversalEvent,
   ledgerRow,
   mapStatus,
+  paymentTrackingUpdate,
   pendingPlanHolds,
   pendingSubscriptionOutcome,
   planFrom,
+  reversalPaymentId,
   sha256Hex,
   storedStatus,
   summariseEvent,
@@ -175,8 +178,34 @@ async function applyEvent(db: ReturnType<typeof serviceClient>, body: any): Prom
     }
   }
 
-  // Refunds are recorded in payment_events only. They do not change a plan;
-  // refund handling stays a human decision under the refund policy.
+  // A refund or a chargeback on the latest payment suspends the renewal grace
+  // until the next successful charge. It does not change the plan: the
+  // customer keeps the time already paid for, and the refund itself stays a
+  // human decision under the refund policy. Other refund events are ledger
+  // only.
+  if (isReversalEvent(event)) {
+    const paymentId = reversalPaymentId(body);
+    let target: any = row;
+
+    if (paymentId && (!target || target.last_payment_id !== paymentId)) {
+      const { data } = await db
+        .from('subscriptions')
+        .select('user_id,last_payment_id')
+        .eq('last_payment_id', paymentId)
+        .maybeSingle();
+      target = data ?? null;
+    }
+
+    if (paymentId && target && target.last_payment_id === paymentId) {
+      await db
+        .from('subscriptions')
+        .update({ last_payment_reversed_at: new Date().toISOString() })
+        .eq('user_id', target.user_id);
+    }
+
+    return target?.user_id ?? noteUser;
+  }
+
   if (refund) return row?.user_id ?? noteUser;
 
   if (!subscription && !payment) return row?.user_id ?? null;
@@ -255,6 +284,16 @@ async function applyEvent(db: ReturnType<typeof serviceClient>, body: any): Prom
         switchUpdate.last_payment_currency = payment.currency ? String(payment.currency) : 'INR';
       }
 
+      const switchTracking = paymentTrackingUpdate(event, payment);
+      if (switchTracking) {
+        Object.assign(switchUpdate, switchTracking);
+      } else {
+        // No payment on this event, so the old subscription's payment must not
+        // be used to grant grace to the new one.
+        switchUpdate.last_payment_id = null;
+        switchUpdate.last_payment_reversed_at = null;
+      }
+
       const { error: switchError } = await db
         .from('subscriptions')
         .update(switchUpdate)
@@ -315,6 +354,9 @@ async function applyEvent(db: ReturnType<typeof serviceClient>, body: any): Prom
       : null;
     update.last_payment_currency = payment.currency ? String(payment.currency) : 'INR';
   }
+
+  const tracking = paymentTrackingUpdate(event, payment);
+  if (tracking) Object.assign(update, tracking);
 
   // A halted, cancelled or completed plan falls back to Free only once the
   // period the customer paid for has ended.
