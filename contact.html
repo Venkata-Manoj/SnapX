@@ -65,6 +65,9 @@
       <!-- @if HAS_POSTAL_ADDRESS -->
       <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
       <!-- @endif -->
+      <!-- @ifnot HAS_POSTAL_ADDRESS -->
+      <p class="small muted">Postal address: to be added before launch.</p>
+      <!-- @endif -->
       <!-- @if PHONE -->
       <p>Phone: {{PHONE}}</p>
       <!-- @endif -->

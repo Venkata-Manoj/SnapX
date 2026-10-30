@@ -53,7 +53,7 @@
       <p>Your settings are saved with <code>chrome.storage</code>, along with a learned picture of your room for each site and camera, so it can start faster next time. You can clear the room at any time in the popup: Room → Forget room. Removing the extension deletes everything.</p>
 
       <h3>What it sends when you sign in</h3>
-      <p>The extension itself makes no network requests. When you're signed in on this website, the website gives the extension a signed plan check (your account ID, plan and an expiry date). Video, audio and images never leave your device.</p>
+      <p>The extension itself makes no network requests. When you're signed in on this website, the website gives the extension a signed plan check (your account ID, plan and an expiry date). To bind that check to one browser, the extension generates a random install ID and the website includes it in the signed check. The install ID contains nothing about you and is not used for tracking. Video, audio and images never leave your device.</p>
 
       <h2>Your account</h2>
       <p>An account is optional. You need one to buy or manage a paid plan, or to connect the extension to your plan.</p>
@@ -63,7 +63,8 @@
         <li>Your name and profile picture, if your sign-in provider shares them.</li>
         <li>How you signed in — Google or an email code.</li>
         <li>Your plan, subscription status, and the dates it started, renews or ends.</li>
-        <li>Payment IDs and dates for charges and refunds.</li>
+        <li>Payment IDs, amounts and dates for charges and refunds.</li>
+        <li>A random install ID from the extension, used only to bind a plan check to that browser.</li>
       </ul>
       <h3>What we do not collect</h3>
       <ul>
@@ -122,6 +123,9 @@
       <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}.</p>
       <!-- @if HAS_POSTAL_ADDRESS -->
       <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
+      <!-- @endif -->
+      <!-- @ifnot HAS_POSTAL_ADDRESS -->
+      <p class="small muted">Postal address: to be added before launch.</p>
       <!-- @endif -->
       <p>Privacy questions: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a>. General contact: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
     </div>

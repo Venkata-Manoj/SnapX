@@ -27,7 +27,7 @@ export const SITE = {
   OPERATOR_NAME: 'B V Manoj',
   OPERATOR_TYPE: 'an individual (sole proprietor)',
   CITY: 'Chennai, Tamil Nadu, India',
-  OPERATOR_POSTAL_ADDRESS: '', // optional; shown only when set
+  OPERATOR_POSTAL_ADDRESS: '', // required before launch; the build warns until set
   PHONE: '', // optional; rendered only when set
   GRIEVANCE_OFFICER_NAME: 'B V Manoj',
   GRIEVANCE_EMAIL: 'call.snapx@gmail.com',
@@ -66,6 +66,7 @@ export const UNFILLED = [
   ['BILLING_EMAIL', SITE.BILLING_EMAIL],
   ['PRIVACY_EMAIL', SITE.PRIVACY_EMAIL],
   ['GRIEVANCE_EMAIL', SITE.GRIEVANCE_EMAIL],
+  ['OPERATOR_POSTAL_ADDRESS', SITE.OPERATOR_POSTAL_ADDRESS],
 ]
   .filter(([, value]) => !value || /example\.com|to be added/i.test(String(value)))
   .map(([key]) => key);
