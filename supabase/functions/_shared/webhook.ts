@@ -11,11 +11,27 @@ export type SubscriptionRow = {
   plan?: string | null;
   status?: string | null;
   current_period_end?: string | null;
+  cancel_at_period_end?: boolean | null;
   pending_plan?: string | null;
   pending_plan_at?: string | null;
   provider_subscription_id?: string | null;
   pending_subscription_id?: string | null;
+  last_payment_id?: string | null;
+  last_payment_reversed_at?: string | null;
 };
+
+/** Plan-pass limits shared by the entitlement function and its tests. */
+export const DAY_SECONDS = 24 * 60 * 60;
+export const PASS_SECONDS = 35 * DAY_SECONDS;
+export const GRACE_SECONDS = 3 * DAY_SECONDS;
+
+const AUTO_RENEWING_STATUSES = ['active', 'authenticated'];
+
+const SUCCESSFUL_PAYMENT_EVENTS = [
+  'subscription.authenticated',
+  'subscription.activated',
+  'subscription.charged',
+];
 
 const encoder = new TextEncoder();
 
@@ -204,6 +220,8 @@ export function unixToIso(value: unknown): string | null {
  * active (or authorised and waiting for the first charge) and its period has
  * not ended. A cancelled or completed plan keeps the time already paid for
  * until current_period_end. Halted, failed and paused plans are Free at once.
+ * A paid plan whose period has ended is Free, except inside the renewal grace
+ * window (see `graceApplies`), which covers the charge/webhook gap.
  */
 export function effectivePlan(
   row: SubscriptionRow | null | undefined,
@@ -211,17 +229,116 @@ export function effectivePlan(
 ): EffectivePlan {
   if (!row || !row.plan || row.plan === 'free') return 'free';
 
-  const status = String(row.status ?? 'active');
+  const status = String(row.status ?? 'active').toLowerCase();
   if (!['active', 'authenticated', 'cancelled', 'completed'].includes(status)) return 'free';
 
-  if (row.current_period_end) {
-    const end = Date.parse(row.current_period_end);
-    if (Number.isFinite(end) && end <= nowMs) return 'free';
-  } else if (status === 'cancelled' || status === 'completed') {
-    return 'free';
-  }
+  const end = row.current_period_end ? Date.parse(row.current_period_end) : Number.NaN;
+  if (!Number.isFinite(end)) return 'free';
+
+  // The paid period is over. Only the renewal grace can keep the plan alive,
+  // and only while its three-day window is still open. This is the window
+  // between the renewal charge and the webhook that records it.
+  if (end <= nowMs && !graceApplies(row, nowMs)) return 'free';
 
   return row.plan === 'max' ? 'max' : 'pro';
+}
+
+/**
+ * Whether the renewal grace may extend a pass past current_period_end.
+ *
+ * Razorpay charges the renewal at the moment the old period ends. The customer
+ * may not open the site until later, so a pass minted just before that charge
+ * would otherwise leave the extension on Free until the next visit. The grace
+ * is only safe when the subscription will really renew on its own:
+ * - Pro or Max, active (or authenticated and waiting for the first charge);
+ * - no cancellation at the cycle end;
+ * - no replacement scheduled (a UPI upgrade or a plan change);
+ * - a provider subscription and a recorded last payment;
+ * - that last payment has not been refunded or disputed;
+ * - the period ended no more than three days ago, so a pass minted before the
+ *   renewal still covers the charge/webhook gap.
+ *
+ * Every other case keeps the strict period-end expiry.
+ */
+export function graceApplies(
+  row: SubscriptionRow | null | undefined,
+  nowMs = Date.now(),
+): boolean {
+  if (!row) return false;
+  if (row.plan !== 'pro' && row.plan !== 'max') return false;
+
+  const status = String(row.status ?? '').toLowerCase();
+  if (!AUTO_RENEWING_STATUSES.includes(status)) return false;
+  if (row.cancel_at_period_end) return false;
+  if (row.pending_plan || row.pending_subscription_id) return false;
+  if (!row.provider_subscription_id || !row.last_payment_id) return false;
+  if (row.last_payment_reversed_at) return false;
+
+  const end = row.current_period_end ? Date.parse(row.current_period_end) : Number.NaN;
+  return Number.isFinite(end) && end + GRACE_SECONDS * 1000 > nowMs;
+}
+
+export type Entitlement = {
+  plan: EffectivePlan;
+  exp: number;
+  grace: boolean;
+};
+
+/**
+ * The plan and expiry for one pass. Paid and safe to renew ->
+ * min(now + 35 days, current_period_end + 3 days). Everything else ->
+ * min(now + 35 days, current_period_end), or Free for 35 days.
+ */
+export function entitlementFor(
+  row: SubscriptionRow | null | undefined,
+  nowSeconds = Math.floor(Date.now() / 1000),
+): Entitlement {
+  const nowMs = nowSeconds * 1000;
+  const plan = effectivePlan(row, nowMs);
+  const cap = nowSeconds + PASS_SECONDS;
+
+  if (plan === 'free') return { plan, exp: cap, grace: false };
+
+  const end = Math.floor(Date.parse(String(row?.current_period_end)) / 1000);
+  const grace = graceApplies(row, nowMs);
+  const exp = Math.min(cap, Math.max(grace ? end + GRACE_SECONDS : end, nowSeconds));
+
+  return { plan, exp, grace };
+}
+
+/** A refund or a chargeback means the last payment is no longer trustworthy. */
+export function isReversalEvent(event: string): boolean {
+  return (
+    event === 'refund.created' ||
+    event === 'refund.processed' ||
+    event.startsWith('payment.dispute.')
+  );
+}
+
+/** The payment a refund or dispute refers to. */
+export function reversalPaymentId(body: unknown): string | null {
+  const payload = (body ?? {}) as Record<string, any>;
+  const refund = payload?.payload?.refund?.entity ?? {};
+  const dispute = payload?.payload?.dispute?.entity ?? {};
+  const id = refund.payment_id ?? dispute.payment_id ?? null;
+  return id ? String(id) : null;
+}
+
+/**
+ * Fields written when a successful payment arrives. The payment id is what a
+ * later refund or dispute matches, and a fresh charge clears an old reversal.
+ */
+export function paymentTrackingUpdate(
+  event: string,
+  payment: unknown,
+): Record<string, unknown> | null {
+  if (!SUCCESSFUL_PAYMENT_EVENTS.includes(event)) return null;
+
+  const entity = (payment ?? {}) as Record<string, unknown>;
+  const id = typeof entity.id === 'string' && entity.id ? entity.id : null;
+  if (!id) return null;
+
+  return { last_payment_id: id, last_payment_reversed_at: null };
 }
 
 /**
@@ -233,18 +350,25 @@ export function summariseEvent(body: unknown): Record<string, unknown> {
   const subscription = payload?.payload?.subscription?.entity ?? {};
   const payment = payload?.payload?.payment?.entity ?? {};
   const refund = payload?.payload?.refund?.entity ?? {};
+  const dispute = payload?.payload?.dispute?.entity ?? {};
 
   return {
     event: String(payload?.event ?? ''),
-    subscription_id: subscription.id ?? payment.subscription_id ?? refund.subscription_id ?? null,
-    payment_id: payment.id ?? refund.payment_id ?? null,
+    subscription_id:
+      subscription.id ??
+      payment.subscription_id ??
+      refund.subscription_id ??
+      dispute.subscription_id ??
+      null,
+    payment_id: payment.id ?? refund.payment_id ?? dispute.payment_id ?? null,
     refund_id: refund.id ?? null,
+    dispute_id: dispute.id ?? null,
     plan_id: subscription.plan_id ?? null,
-    status: subscription.status ?? payment.status ?? refund.status ?? null,
-    amount: payment.amount ?? refund.amount ?? null,
-    currency: payment.currency ?? refund.currency ?? null,
+    status: subscription.status ?? payment.status ?? refund.status ?? dispute.status ?? null,
+    amount: payment.amount ?? refund.amount ?? dispute.amount ?? null,
+    currency: payment.currency ?? refund.currency ?? dispute.currency ?? null,
     current_end: subscription.current_end ?? null,
-    created_at: payment.created_at ?? refund.created_at ?? subscription.created_at ?? null,
+    created_at: payment.created_at ?? refund.created_at ?? dispute.created_at ?? subscription.created_at ?? null,
   };
 }
 

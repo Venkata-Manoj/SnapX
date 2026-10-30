@@ -2,6 +2,7 @@ import { json, methodNotAllowed, preflight, unauthorized } from '../_shared/http
 import { serviceClient, userFromRequest } from '../_shared/clients.ts';
 import { requireEnv } from '../_shared/env.ts';
 import { signEntitlement } from '../_shared/token.ts';
+import { entitlementFor } from '../_shared/webhook.ts';
 
 /**
  * Issues the signed plan pass the extension verifies.
@@ -10,14 +11,12 @@ import { signEntitlement } from '../_shared/token.ts';
  * - the plan comes from the server-side row, never from the request;
  * - the only client input is the install id, and it is echoed into the pass so
  *   a pass minted for one browser cannot be replayed in another;
- * - paid and active -> exp = min(current_period_end, now + 35 days), so a pass
- *   never outlives the period the customer paid for;
- *   everything else -> Free for 35 days.
+ * - paid, active and safe to renew -> exp = min(now + 35 days,
+ *   current_period_end + 3 days); every other paid case -> exp =
+ *   min(now + 35 days, current_period_end); Free -> now + 35 days.
  */
 
 const INSTALL_ID = /^[0-9a-f]{32}$/;
-const DAY_SECONDS = 24 * 60 * 60;
-const FREE_PASS_SECONDS = 35 * DAY_SECONDS;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return preflight(req);
@@ -40,7 +39,9 @@ Deno.serve(async (req) => {
     const db = serviceClient();
     const { data: row, error } = await db
       .from('subscriptions')
-      .select('plan,status,current_period_end')
+      .select(
+        'plan,status,current_period_end,cancel_at_period_end,pending_plan,pending_plan_at,provider_subscription_id,pending_subscription_id,last_payment_id,last_payment_reversed_at',
+      )
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -50,21 +51,7 @@ Deno.serve(async (req) => {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const status = String(row?.status ?? '').toLowerCase();
-    const rowPlan = String(row?.plan ?? '').toLowerCase();
-    const endMs = row?.current_period_end ? Date.parse(row.current_period_end) : Number.NaN;
-    const end = Number.isFinite(endMs) ? Math.floor(endMs / 1000) : 0;
-
-    // A cancellation or a completed billing cycle does not take away time the
-    // customer already paid for: the plan stays until current_period_end. A
-    // failed or halted payment does stop paid features immediately.
-    const paid =
-      (rowPlan === 'pro' || rowPlan === 'max') &&
-      ['active', 'authenticated', 'cancelled', 'completed'].includes(status) &&
-      end > now;
-
-    const plan = paid ? rowPlan : 'free';
-    const exp = paid ? Math.min(end, now + FREE_PASS_SECONDS) : now + FREE_PASS_SECONDS;
+    const { plan, exp } = entitlementFor(row, now);
 
     const payload = { v: 1, aud: 'snapx-ext', sub: user.id, plan, iid, iat: now, exp };
 

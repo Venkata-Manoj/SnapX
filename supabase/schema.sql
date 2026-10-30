@@ -54,6 +54,13 @@ alter table public.subscriptions add column if not exists last_payment_at timest
 alter table public.subscriptions add column if not exists last_payment_amount integer;
 alter table public.subscriptions add column if not exists last_payment_currency text;
 
+-- The renewal grace is only safe when the latest payment has not been refunded
+-- or disputed. `last_payment_id` is the Razorpay payment id; a refund or
+-- chargeback sets `last_payment_reversed_at`, and the next successful charge
+-- clears it.
+alter table public.subscriptions add column if not exists last_payment_id text;
+alter table public.subscriptions add column if not exists last_payment_reversed_at timestamptz;
+
 -- A UPI mandate cannot be updated in place, so an upgrade creates a second
 -- Razorpay subscription that starts when the current period ends. This column
 -- holds that future subscription until its first activation switches it in.
@@ -66,6 +73,12 @@ create unique index if not exists subscriptions_provider_subscription_id_key
 create unique index if not exists subscriptions_pending_subscription_id_key
   on public.subscriptions (pending_subscription_id)
   where pending_subscription_id is not null;
+
+-- Refund and dispute webhooks may carry only a payment id, so the row is found
+-- by the latest payment rather than the subscription id.
+create index if not exists subscriptions_last_payment_id_idx
+  on public.subscriptions (last_payment_id)
+  where last_payment_id is not null;
 
 -- The deployed table only stores these six states. Razorpay's `authenticated`,
 -- `paused` and `expired` are folded into them by the webhook before writing,
