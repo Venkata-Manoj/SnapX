@@ -11,13 +11,21 @@ import { createHmac, generateKeyPairSync, verify as verifyEd25519 } from 'node:c
 import { readFileSync } from 'node:fs';
 
 import {
+  DAY_SECONDS,
   effectivePlan,
+  entitlementFor,
+  graceApplies,
+  GRACE_SECONDS,
   hmacSha256Hex,
+  isReversalEvent,
   ledgerRow,
   mapStatus,
+  PASS_SECONDS,
+  paymentTrackingUpdate,
   pendingPlanHolds,
   pendingSubscriptionOutcome,
   planFrom,
+  reversalPaymentId,
   sha256Hex,
   storedStatus,
   STORED_STATUSES,
@@ -102,6 +110,181 @@ await test('entitlement is Free when expired, failed or not active', () => {
   assert.equal(effectivePlan({ plan: 'pro', status: 'paused', current_period_end: future }), 'free');
   assert.equal(effectivePlan({ plan: 'free', status: 'active', current_period_end: future }), 'free');
   assert.equal(effectivePlan(null), 'free');
+});
+
+const NOW = 1_800_000_000;
+const AT = (seconds) => new Date(seconds * 1000).toISOString();
+const RENEWING = {
+  plan: 'pro',
+  status: 'active',
+  current_period_end: AT(NOW + 10 * DAY_SECONDS),
+  cancel_at_period_end: false,
+  pending_plan: null,
+  pending_plan_at: null,
+  provider_subscription_id: 'sub_1',
+  pending_subscription_id: null,
+  last_payment_id: 'pay_1',
+  last_payment_reversed_at: null,
+};
+
+await test('grace needs an active, auto-renewing paid plan with a clean payment', () => {
+  assert.equal(graceApplies(RENEWING, NOW * 1000), true);
+  assert.equal(graceApplies({ ...RENEWING, plan: 'max' }, NOW * 1000), true);
+  assert.equal(graceApplies({ ...RENEWING, status: 'authenticated' }, NOW * 1000), true);
+
+  assert.equal(graceApplies({ ...RENEWING, cancel_at_period_end: true }, NOW * 1000), false);
+  assert.equal(graceApplies({ ...RENEWING, pending_plan: 'max' }, NOW * 1000), false);
+  assert.equal(graceApplies({ ...RENEWING, pending_subscription_id: 'sub_2' }, NOW * 1000), false);
+  assert.equal(graceApplies({ ...RENEWING, provider_subscription_id: null }, NOW * 1000), false);
+  assert.equal(graceApplies({ ...RENEWING, last_payment_id: null }, NOW * 1000), false);
+  assert.equal(graceApplies({ ...RENEWING, last_payment_reversed_at: AT(NOW) }, NOW * 1000), false);
+  // The grace window stays open for three days after the period ends.
+  assert.equal(graceApplies({ ...RENEWING, current_period_end: AT(NOW - 1) }, NOW * 1000), true);
+  assert.equal(
+    graceApplies({ ...RENEWING, current_period_end: AT(NOW - GRACE_SECONDS - 1) }, NOW * 1000),
+    false,
+  );
+
+  for (const status of ['cancelled', 'completed', 'halted', 'paused', 'past_due', 'created']) {
+    assert.equal(graceApplies({ ...RENEWING, status }, NOW * 1000), false, status);
+  }
+  assert.equal(graceApplies({ ...RENEWING, plan: 'free' }, NOW * 1000), false);
+  assert.equal(graceApplies(null, NOW * 1000), false);
+});
+
+await test('entitlement adds the grace only to safe renewals', () => {
+  const end = NOW + 10 * DAY_SECONDS;
+
+  const pro = entitlementFor(RENEWING, NOW);
+  assert.deepEqual(pro, { plan: 'pro', exp: end + GRACE_SECONDS, grace: true });
+  assert.equal(pro.exp - NOW, 13 * DAY_SECONDS);
+
+  const max = entitlementFor({ ...RENEWING, plan: 'max' }, NOW);
+  assert.deepEqual(max, { plan: 'max', exp: end + GRACE_SECONDS, grace: true });
+
+  const cancelling = entitlementFor({ ...RENEWING, cancel_at_period_end: true }, NOW);
+  assert.deepEqual(cancelling, { plan: 'pro', exp: end, grace: false });
+
+  const cancelled = entitlementFor({ ...RENEWING, status: 'cancelled' }, NOW);
+  assert.deepEqual(cancelled, { plan: 'pro', exp: end, grace: false });
+
+  const ended = entitlementFor({ ...RENEWING, status: 'cancelled', current_period_end: AT(NOW - 1) }, NOW);
+  assert.deepEqual(ended, { plan: 'free', exp: NOW + PASS_SECONDS, grace: false });
+
+  // Renewal day before the webhook lands: the old period has just ended, the
+  // subscription is still active and auto-renewing, so the grace covers it.
+  const renewalDay = entitlementFor(
+    { ...RENEWING, current_period_end: AT(NOW - DAY_SECONDS) },
+    NOW,
+  );
+  assert.deepEqual(renewalDay, { plan: 'pro', exp: NOW + 2 * DAY_SECONDS, grace: true });
+
+  // Past the three-day window the row is Free again.
+  const stale = entitlementFor(
+    { ...RENEWING, current_period_end: AT(NOW - GRACE_SECONDS - 1) },
+    NOW,
+  );
+  assert.deepEqual(stale, { plan: 'free', exp: NOW + PASS_SECONDS, grace: false });
+
+  for (const status of ['halted', 'paused', 'past_due']) {
+    assert.deepEqual(
+      entitlementFor({ ...RENEWING, status }, NOW),
+      { plan: 'free', exp: NOW + PASS_SECONDS, grace: false },
+      status,
+    );
+  }
+
+  const refunded = entitlementFor({ ...RENEWING, last_payment_reversed_at: AT(NOW) }, NOW);
+  assert.deepEqual(refunded, { plan: 'pro', exp: end, grace: false });
+
+  const pendingUpi = entitlementFor(
+    { ...RENEWING, pending_plan: 'max', pending_subscription_id: 'sub_2' },
+    NOW,
+  );
+  assert.deepEqual(pendingUpi, { plan: 'pro', exp: end, grace: false });
+
+  const switched = entitlementFor(
+    {
+      ...RENEWING,
+      plan: 'max',
+      current_period_end: AT(NOW + 30 * DAY_SECONDS),
+      provider_subscription_id: 'sub_2',
+      last_payment_id: 'pay_2',
+    },
+    NOW,
+  );
+  assert.deepEqual(switched, {
+    plan: 'max',
+    exp: NOW + 33 * DAY_SECONDS,
+    grace: true,
+  });
+});
+
+await test('the pass cap wins over a long grace, and a short period stays safe', () => {
+  const long = entitlementFor(
+    { ...RENEWING, current_period_end: AT(NOW + 60 * DAY_SECONDS) },
+    NOW,
+  );
+  assert.deepEqual(long, { plan: 'pro', exp: NOW + PASS_SECONDS, grace: true });
+  assert.equal(long.exp - NOW, 35 * DAY_SECONDS);
+
+  const short = entitlementFor(
+    { ...RENEWING, current_period_end: AT(NOW + 3600) },
+    NOW,
+  );
+  assert.equal(short.plan, 'pro');
+  assert.equal(short.exp, NOW + 3600 + GRACE_SECONDS);
+  assert.equal(short.grace, true);
+  assert.ok(short.exp > NOW, 'exp is after iat');
+  assert.ok(short.exp - NOW <= 40 * DAY_SECONDS, 'exp - iat is at most 40 days');
+
+  // A paid plan with no usable period end is Free, matching the old gate.
+  assert.deepEqual(entitlementFor({ ...RENEWING, current_period_end: null }, NOW), {
+    plan: 'free',
+    exp: NOW + PASS_SECONDS,
+    grace: false,
+  });
+});
+
+await test('refunds and chargebacks are recognised, other refund events are not', () => {
+  assert.equal(isReversalEvent('refund.created'), true);
+  assert.equal(isReversalEvent('refund.processed'), true);
+  assert.equal(isReversalEvent('payment.dispute.created'), true);
+  assert.equal(isReversalEvent('payment.dispute.won'), true);
+  assert.equal(isReversalEvent('payment.dispute.lost'), true);
+  assert.equal(isReversalEvent('refund.failed'), false);
+  assert.equal(isReversalEvent('refund.speed_changed'), false);
+  assert.equal(isReversalEvent('subscription.charged'), false);
+
+  assert.equal(
+    reversalPaymentId({ payload: { refund: { entity: { id: 'rfnd_1', payment_id: 'pay_1' } } } }),
+    'pay_1',
+  );
+  assert.equal(
+    reversalPaymentId({ payload: { dispute: { entity: { id: 'disp_1', payment_id: 'pay_2' } } } }),
+    'pay_2',
+  );
+  assert.equal(reversalPaymentId({ payload: {} }), null);
+});
+
+await test('a successful charge records the payment and clears an old reversal', () => {
+  const payment = { id: 'pay_9' };
+  assert.deepEqual(paymentTrackingUpdate('subscription.charged', payment), {
+    last_payment_id: 'pay_9',
+    last_payment_reversed_at: null,
+  });
+  assert.deepEqual(paymentTrackingUpdate('subscription.activated', payment), {
+    last_payment_id: 'pay_9',
+    last_payment_reversed_at: null,
+  });
+  assert.deepEqual(paymentTrackingUpdate('subscription.authenticated', payment), {
+    last_payment_id: 'pay_9',
+    last_payment_reversed_at: null,
+  });
+  assert.equal(paymentTrackingUpdate('subscription.charged', null), null);
+  assert.equal(paymentTrackingUpdate('subscription.charged', { id: '' }), null);
+  assert.equal(paymentTrackingUpdate('subscription.updated', payment), null);
+  assert.equal(paymentTrackingUpdate('payment.failed', payment), null);
 });
 
 await test('a Free signup row does not block the first checkout', () => {
@@ -252,6 +435,41 @@ await test('payment ledger summary contains billing fields and no customer PII',
   assert.equal(text.includes('uuid'), false);
 });
 
+await test('a dispute summary records the ids without customer PII', () => {
+  const summary = summariseEvent({
+    event: 'payment.dispute.created',
+    payload: {
+      payment: {
+        entity: {
+          id: 'pay_77',
+          subscription_id: 'sub_77',
+          amount: 6900,
+          currency: 'INR',
+          email: 'person@example.com',
+        },
+      },
+      dispute: {
+        entity: {
+          id: 'disp_77',
+          payment_id: 'pay_77',
+          amount: 6900,
+          currency: 'INR',
+          status: 'open',
+          created_at: 1700000000,
+        },
+      },
+    },
+  });
+
+  assert.equal(summary.event, 'payment.dispute.created');
+  assert.equal(summary.dispute_id, 'disp_77');
+  assert.equal(summary.payment_id, 'pay_77');
+  assert.equal(summary.subscription_id, 'sub_77');
+  assert.equal(summary.amount, 6900);
+  assert.equal(summary.currency, 'INR');
+  assert.equal(JSON.stringify(summary).includes('person@example.com'), false);
+});
+
 await test('the ledger insert fills every not-null column', () => {
   // The deployed table has provider and event_type as not-null columns; an
   // insert that omits them fails and Razorpay gets a 500 on every event.
@@ -352,6 +570,9 @@ await test('the schema keeps the payment ledger private and nullable', () => {
   assert.match(sql, /alter table public\.payment_events enable row level security/);
   assert.match(sql, /revoke all on public\.payment_events from anon/);
   assert.match(sql, /revoke all on public\.payment_events from authenticated/);
+  assert.match(sql, /add column if not exists last_payment_id text/);
+  assert.match(sql, /add column if not exists last_payment_reversed_at timestamptz/);
+  assert.match(sql, /subscriptions_last_payment_id_idx/);
 });
 
 await test('provider statuses the table rejects are folded before writing', () => {
