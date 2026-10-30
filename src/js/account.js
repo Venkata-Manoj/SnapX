@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { appUrl, authErrorMessage, displayName, formatDate, providerName, setAvatar } from '../lib/auth.js';
 import { formatMoney, planName, readFunctionError } from '../lib/billing.js';
-import { extensionReady, lastPassResult } from '../extension-bridge.js';
+import { extensionReady, lastPassResult, pingExtension } from '../extension-bridge.js';
 
 const loading = document.querySelector('[data-account-loading]');
 const body = document.querySelector('[data-account-body]');
@@ -32,6 +32,7 @@ const extensionIdle = document.querySelector('[data-extension-idle]');
 const extensionConnecting = document.querySelector('[data-extension-connecting]');
 const extensionConnected = document.querySelector('[data-extension-connected]');
 const extensionError = document.querySelector('[data-extension-error]');
+const extensionRetry = document.querySelector('[data-extension-retry]');
 
 const manageDialog = document.querySelector('[data-manage-dialog]');
 const manageCurrent = document.querySelector('[data-manage-current]');
@@ -503,14 +504,6 @@ signOutButton?.addEventListener('click', async () => {
   window.location.assign(appUrl(''));
 });
 
-const EXTENSION_ERRORS = {
-  'bad pass': 'The plan check was rejected. Try again, or update SnapX.',
-  'bad signature': 'The plan check was rejected. Try again, or update SnapX.',
-  'pass is for another install': 'That plan check was for a different install. Try again.',
-  'pass expired': 'The plan check expired. Reload this page.',
-  'extension unavailable': 'SnapX stopped responding. Reload the page and try again.',
-};
-
 function showExtension(state, message = '') {
   const views = [
     ['idle', extensionIdle],
@@ -527,10 +520,9 @@ function showExtension(state, message = '') {
   if (state === 'error' && extensionError) extensionError.textContent = message;
 }
 
-function extensionErrorMessage(error) {
-  const text = String(error || '').trim();
-  if (!text) return 'Could not connect. Reload the page and try again.';
-  return EXTENSION_ERRORS[text] || `Could not connect: ${text}`;
+function formatPassExpiry(exp) {
+  if (!Number.isFinite(exp) || exp <= 0) return '';
+  return formatDate(new Date(exp * 1000).toISOString());
 }
 
 function showPassResult(result) {
@@ -538,30 +530,39 @@ function showPassResult(result) {
 
   if (result.ok) {
     const plan = planName(result.plan || 'free');
+    const expiry = formatPassExpiry(result.exp);
     showExtension(
       'connected',
-      `Connected. Your plan: ${plan}. You can close this tab and go back to your call.`,
+      `Connected · ${plan}${expiry ? ` · expires ${expiry}` : ''}`,
     );
     return;
   }
 
-  showExtension('error', extensionErrorMessage(result.error));
+  // Show the extension's own error string, unchanged: mapping "bad signature"
+  // to a friendly sentence hides the one fact that makes it fixable.
+  showExtension('error', result.error || 'The extension rejected the pass.');
 }
 
 /**
- * The three states of the connect card, per docs/SITE_CONNECT_PROMPT.md item 4.
- * The bridge does the messaging; this only renders what it reports.
+ * The connect card. The bridge does the messaging; this only renders what it
+ * reports. Every entry to /account pings after the listeners are attached,
+ * because the extension's hello is one-shot and can arrive before this script.
  */
 function initExtensionConnect() {
   if (!extensionPanel) return;
-  if (new URLSearchParams(window.location.search).get('connect') !== 'extension') return;
 
   let helloTimer = 0;
   let resultTimer = 0;
+  let pingTimer = 0;
+  let bound = false;
+
+  const requested = () =>
+    new URLSearchParams(window.location.search).get('connect') === 'extension';
 
   const clearTimers = () => {
     window.clearTimeout(helloTimer);
     window.clearTimeout(resultTimer);
+    window.clearInterval(pingTimer);
   };
 
   const noResult = () =>
@@ -573,33 +574,90 @@ function initExtensionConnect() {
       "SnapX isn't installed in this Chrome. Install it, then reload this page.",
     );
 
-  // The latest event wins: a slow content script may say hello after the 3 s
-  // mark, and a slow function may answer after the result timer.
-  document.addEventListener('snapx-connect-hello', () => {
-    clearTimers();
-    showExtension('connecting');
+  const startResultTimer = () => {
+    window.clearTimeout(resultTimer);
     resultTimer = window.setTimeout(noResult, 10000);
-  });
+  };
 
-  document.addEventListener('snapx-connect-result', (event) => {
+  const ping = () => {
+    pingExtension();
+    let attempts = 0;
+    window.clearInterval(pingTimer);
+    pingTimer = window.setInterval(() => {
+      attempts += 1;
+      if (extensionReady() || attempts >= 4) {
+        window.clearInterval(pingTimer);
+        return;
+      }
+      pingExtension();
+    }, 700);
+  };
+
+  const start = ({ retry = false } = {}) => {
     clearTimers();
-    showPassResult(event.detail);
-  });
+
+    if (extensionReady()) {
+      showExtension('connecting');
+      startResultTimer();
+    } else if (requested() || retry) {
+      showExtension('connecting');
+      helloTimer = window.setTimeout(notInstalled, 3000);
+    } else {
+      showExtension('idle');
+    }
+
+    ping();
+  };
+
+  const bind = () => {
+    if (bound) return;
+    bound = true;
+
+    document.addEventListener('snapx-connect-hello', () => {
+      clearTimers();
+      showExtension('connecting');
+      startResultTimer();
+    });
+
+    document.addEventListener('snapx-connect-result', (event) => {
+      clearTimers();
+      showPassResult(event.detail);
+    });
+
+    extensionRetry?.addEventListener('click', () => start({ retry: true }));
+
+    // This site is multi-page: arriving at /account is a page load. bfcache
+    // restores and history navigation are the route-change cases that do not
+    // reload the document.
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) start({ retry: true });
+    });
+    window.addEventListener('popstate', () => {
+      if (/\/account(?:\.html)?\/?$/.test(window.location.pathname)) start({ retry: true });
+    });
+    window.addEventListener('hashchange', () => {
+      if (/\/account(?:\.html)?\/?$/.test(window.location.pathname)) start({ retry: true });
+    });
+  };
+
+  bind();
 
   const recent = lastPassResult();
   if (recent) {
     showPassResult(recent);
-    return;
+  } else if (extensionReady()) {
+    showExtension('connecting');
+    startResultTimer();
+  } else if (requested()) {
+    showExtension('connecting');
+    helloTimer = window.setTimeout(notInstalled, 3000);
+  } else {
+    showExtension('idle');
   }
 
-  showExtension('connecting');
-
-  if (extensionReady()) {
-    resultTimer = window.setTimeout(noResult, 10000);
-    return;
-  }
-
-  helloTimer = window.setTimeout(notInstalled, 3000);
+  // After the listeners above exist, never before. The old module-load ping
+  // ran before this listener and was the reason a one-shot hello could vanish.
+  ping();
 }
 
 async function init() {

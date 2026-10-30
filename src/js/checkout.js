@@ -1,7 +1,7 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
 import { appUrl } from '../lib/auth.js';
 import { readFunctionError } from '../lib/billing.js';
-import { requestPass } from '../extension-bridge.js';
+import { pingExtension, requestPass } from '../extension-bridge.js';
 
 /**
  * Razorpay Checkout for the pricing page.
@@ -265,6 +265,11 @@ async function init() {
 
   const { data } = await supabase.auth.getSession();
   session = data.session ?? null;
+
+  // Ask a content script that loaded after the page to say hello. Without
+  // this, a missed one-shot hello leaves requestPass() with no extension to
+  // send the new plan to after checkout.
+  pingExtension();
 
   buttons.forEach((button) => {
     button.addEventListener('click', (event) => {

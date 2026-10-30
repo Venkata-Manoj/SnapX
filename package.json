@@ -12,6 +12,7 @@
     "check:placeholders": "node scripts/check-placeholders.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
     "test:billing": "node scripts/test-billing.mjs",
+    "test:redirect": "node scripts/test-redirect.mjs",
     "check:razorpay": "node scripts/check-razorpay-keys.mjs",
     "check:entitlement": "node scripts/check-entitlement.mjs",
     "check": "linkinator dist --recurse --silent --skip \"^(https?://(?!localhost|127\\.0\\.0\\.1)|mailto:)\""

@@ -23,6 +23,7 @@ let extension = null;
 let inFlight = false;
 let lastAutoSend = 0;
 let lastResult = null;
+let lastHelloAt = 0;
 
 function isFromExtension(event) {
   return (
@@ -94,11 +95,12 @@ window.addEventListener('message', (event) => {
   const data = event.data;
 
   if (data.type === 'hello') {
+    lastHelloAt = Date.now();
     extension = {
       iid: typeof data.iid === 'string' ? data.iid : '',
       version: data.version,
       plan: data.plan,
-      exp: data.exp,
+      exp: Number(data.exp) || 0,
       wantsPass: Boolean(data.wantsPass),
     };
 
@@ -117,6 +119,7 @@ window.addEventListener('message', (event) => {
     lastResult = {
       ok: Boolean(data.ok),
       plan: typeof data.plan === 'string' ? data.plan : '',
+      exp: Number(data.exp) || 0,
       error: typeof data.error === 'string' ? data.error : '',
     };
 
@@ -133,15 +136,26 @@ export function extensionReady() {
   return Boolean(extension);
 }
 
+/** The extension's last hello, or null before the first one. */
+export function extensionInfo() {
+  return extension ? { ...extension, helloAt: lastHelloAt } : null;
+}
+
 /** The most recent answer from the extension, or null before the first one. */
 export function lastPassResult() {
   return lastResult;
+}
+
+/**
+ * Ask the extension to say hello again. The page must call this only after its
+ * own message listener is attached: the content script may load after the page
+ * script, so a ping sent at module evaluation can be missed.
+ */
+export function pingExtension() {
+  postToExtension({ type: 'ping' });
 }
 
 /** Re-send the current plan after a payment or plan change. */
 export function requestPass(connect = false) {
   return sendPass({ connect, force: true });
 }
-
-// The content script may have loaded before this module; ask it to speak up.
-postToExtension({ type: 'ping' });

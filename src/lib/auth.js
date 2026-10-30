@@ -17,6 +17,11 @@ export const appUrl = (path = '') => `${base}${String(path).replace(/^\/+/, '')}
  */
 export function safeNext(value, fallback = appUrl('account.html')) {
   if (!value || typeof value !== 'string') return fallback;
+
+  // Only a same-site absolute path. Reject a scheme, a protocol-relative
+  // "//host", a backslash and control characters before the URL parser can
+  // normalise them into something else.
+  if (!value.startsWith('/') || value.startsWith('//')) return fallback;
   if (/[\u0000-\u001f\\]/.test(value)) return fallback;
 
   let parsed;
