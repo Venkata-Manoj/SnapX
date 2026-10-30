@@ -23,6 +23,7 @@ let extension = null;
 let inFlight = false;
 let lastAutoSend = 0;
 let lastResult = null;
+let forceNextSend = false;
 
 function isFromExtension(event) {
   return (
@@ -109,7 +110,8 @@ window.addEventListener('message', (event) => {
     );
 
     if (connectRequested()) sendPass({ connect: true, force: true });
-    else sendPass();
+    else sendPass({ force: forceNextSend });
+    forceNextSend = false;
     return;
   }
 
@@ -143,8 +145,13 @@ export function lastPassResult() {
  * Ask the extension to say hello again. The page must call this only after its
  * own message listener is attached: the content script may load after the page
  * script, so a ping sent at module evaluation can be missed.
+ *
+ * `force` is for a user-initiated retry: it bypasses the 5-second auto-send
+ * throttle, so pressing "Check again" straight after a failed check asks for a
+ * fresh pass instead of silently reusing the throttled one.
  */
-export function pingExtension() {
+export function pingExtension({ force = false } = {}) {
+  if (force) forceNextSend = true;
   postToExtension({ type: 'ping' });
 }
 

@@ -665,8 +665,8 @@ function initExtensionConnect() {
     resultTimer = window.setTimeout(noResult, 10000);
   };
 
-  const ping = () => {
-    pingExtension();
+  const ping = (force = false) => {
+    pingExtension({ force });
     let attempts = 0;
     window.clearInterval(pingTimer);
     pingTimer = window.setInterval(() => {
@@ -692,7 +692,9 @@ function initExtensionConnect() {
       showExtension('idle');
     }
 
-    ping();
+    // A retry is a deliberate user action: force the pass instead of letting
+    // the bridge's 5-second throttle drop it.
+    ping(retry);
   };
 
   const bind = () => {
