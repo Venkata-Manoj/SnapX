@@ -6,6 +6,7 @@ BUILD_TODO.md
 SITE_PHASE2_PROMPT.md
 .vite/
 *.log
+!.github/keepalive.log
 .env
 .env.*
 !.env.example

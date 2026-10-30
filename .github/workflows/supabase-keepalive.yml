@@ -1,0 +1,87 @@
+name: Supabase keepalive
+
+# A small read against PostgREST every Monday and Thursday at 09:00 IST. The
+# activity keeps a free Supabase project from being paused for inactivity.
+# The only file this job writes is .github/keepalive.log.
+
+on:
+  schedule:
+    - cron: '30 3 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the heartbeat row
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_ANON_KEY must be set as repository secrets."
+            exit 1
+          fi
+
+          url="${SUPABASE_URL%/}/rest/v1/keepalive?select=id"
+          body="$(mktemp)"
+          status="$(curl -sS -o "$body" -w '%{http_code}' \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "$url")"
+
+          echo "HTTP ${status}"
+          cat "$body"
+
+          if [ "$status" != "200" ]; then
+            echo "::error::Keep-alive read returned HTTP ${status}."
+            exit 1
+          fi
+
+          if ! jq -e 'type == "array" and length == 1 and .[0].id == 1' "$body" >/dev/null; then
+            echo "::error::Keep-alive row 1 was not returned."
+            exit 1
+          fi
+
+          echo "KEEPALIVE_STATUS=${status}" >> "$GITHUB_ENV"
+
+      - name: Append the heartbeat
+        run: |
+          set -euo pipefail
+          mkdir -p .github
+          printf '%s status=%s run=%s\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            "${KEEPALIVE_STATUS}" \
+            "${GITHUB_RUN_ID}" >> .github/keepalive.log
+          tail -n 100 .github/keepalive.log > .github/keepalive.log.tmp
+          mv .github/keepalive.log.tmp .github/keepalive.log
+
+      - name: Commit the heartbeat
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive.log
+
+          if git diff --cached --quiet; then
+            echo "No change to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: supabase keepalive [skip ci]"
+          git push || {
+            echo "Push failed; rebasing once and retrying."
+            git pull --rebase --autostash
+            git push
+          }
