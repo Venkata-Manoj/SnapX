@@ -10,14 +10,14 @@ import { signEntitlement } from '../_shared/token.ts';
  * - the plan comes from the server-side row, never from the request;
  * - the only client input is the install id, and it is echoed into the pass so
  *   a pass minted for one browser cannot be replayed in another;
- * - paid and active -> exp = min(current_period_end + 3 days, now + 35 days);
+ * - paid and active -> exp = min(current_period_end, now + 35 days), so a pass
+ *   never outlives the period the customer paid for;
  *   everything else -> Free for 35 days.
  */
 
 const INSTALL_ID = /^[0-9a-f]{32}$/;
 const DAY_SECONDS = 24 * 60 * 60;
 const FREE_PASS_SECONDS = 35 * DAY_SECONDS;
-const PAID_GRACE_SECONDS = 3 * DAY_SECONDS;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return preflight(req);
@@ -55,15 +55,16 @@ Deno.serve(async (req) => {
     const endMs = row?.current_period_end ? Date.parse(row.current_period_end) : Number.NaN;
     const end = Number.isFinite(endMs) ? Math.floor(endMs / 1000) : 0;
 
+    // A cancellation or a completed billing cycle does not take away time the
+    // customer already paid for: the plan stays until current_period_end. A
+    // failed or halted payment does stop paid features immediately.
     const paid =
       (rowPlan === 'pro' || rowPlan === 'max') &&
-      (status === 'active' || status === 'authenticated') &&
+      ['active', 'authenticated', 'cancelled', 'completed'].includes(status) &&
       end > now;
 
     const plan = paid ? rowPlan : 'free';
-    const exp = paid
-      ? Math.min(end + PAID_GRACE_SECONDS, now + FREE_PASS_SECONDS)
-      : now + FREE_PASS_SECONDS;
+    const exp = paid ? Math.min(end, now + FREE_PASS_SECONDS) : now + FREE_PASS_SECONDS;
 
     const payload = { v: 1, aud: 'snapx-ext', sub: user.id, plan, iid, iat: now, exp };
 

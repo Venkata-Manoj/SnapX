@@ -7,8 +7,13 @@ SITE_PHASE2_PROMPT.md
 .vite/
 *.log
 .env
+.env.*
+!.env.example
 .env.local
 *.pem
+*.key
+verifier/
+AUDIT_TODO.md
 supabase/.env
 supabase/.env.secrets
 .playwright-mcp/

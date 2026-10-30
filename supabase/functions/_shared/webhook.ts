@@ -160,9 +160,10 @@ export function unixToIso(value: unknown): string | null {
 }
 
 /**
- * What the extension may use right now. A paid plan is entitled only while it
- * is active (or authorised and waiting for the first charge) and its period has
- * not ended. Halted, failed, paused, cancelled and completed plans are Free.
+ * What the extension may use right now. A paid plan is entitled while it is
+ * active (or authorised and waiting for the first charge) and its period has
+ * not ended. A cancelled or completed plan keeps the time already paid for
+ * until current_period_end. Halted, failed and paused plans are Free at once.
  */
 export function effectivePlan(
   row: SubscriptionRow | null | undefined,
@@ -171,11 +172,13 @@ export function effectivePlan(
   if (!row || !row.plan || row.plan === 'free') return 'free';
 
   const status = String(row.status ?? 'active');
-  if (status !== 'active' && status !== 'authenticated') return 'free';
+  if (!['active', 'authenticated', 'cancelled', 'completed'].includes(status)) return 'free';
 
   if (row.current_period_end) {
     const end = Date.parse(row.current_period_end);
     if (Number.isFinite(end) && end <= nowMs) return 'free';
+  } else if (status === 'cancelled' || status === 'completed') {
+    return 'free';
   }
 
   return row.plan === 'max' ? 'max' : 'pro';

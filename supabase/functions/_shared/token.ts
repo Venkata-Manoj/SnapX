@@ -8,9 +8,9 @@
  * Two parts, no JWT header. The extension verifies exactly this and rejects a
  * three-part token before it even checks the signature.
  *
- * ENTITLEMENT_PRIVATE_KEY may be either the 64-hex seed from `pass-private.hex`
- * or a PKCS8 PEM (with real newlines or literal `\n`). Both are converted to a
- * PKCS8 key for Web Crypto, so the secret can be rotated without changing code.
+ * ENTITLEMENT_PRIVATE_KEY is exactly the 64-character hex Ed25519 seed from
+ * `pass-private.hex` (32 bytes). No PEM, PKCS8, JWK or base64 form is accepted:
+ * a malformed secret must fail loudly rather than be guessed at.
  */
 
 const encoder = new TextEncoder();
@@ -39,25 +39,14 @@ function hexToBytes(hex: string): Uint8Array {
 }
 
 async function importPrivateKey(value: string): Promise<CryptoKey> {
-  // Secrets set from a shell often contain literal \n rather than newlines.
-  const normalised = value.replace(/\\n/g, '\n').trim();
-  if (!normalised) throw new Error('ENTITLEMENT_PRIVATE_KEY is empty');
-
-  let der: Uint8Array;
-
-  if (/^[0-9a-f]{64}$/i.test(normalised)) {
-    der = new Uint8Array(PKCS8_ED25519_PREFIX.length + 32);
-    der.set(PKCS8_ED25519_PREFIX);
-    der.set(hexToBytes(normalised), PKCS8_ED25519_PREFIX.length);
-  } else {
-    const body = normalised
-      .replace(/-----BEGIN [^-]+-----/g, '')
-      .replace(/-----END [^-]+-----/g, '')
-      .replace(/\s+/g, '');
-
-    if (!body) throw new Error('ENTITLEMENT_PRIVATE_KEY is empty');
-    der = Uint8Array.from(atob(body), (char) => char.charCodeAt(0));
+  const seed = String(value ?? '').trim();
+  if (!/^[0-9a-f]{64}$/i.test(seed)) {
+    throw new Error('ENTITLEMENT_PRIVATE_KEY must be a 64-character hex Ed25519 seed');
   }
+
+  const der = new Uint8Array(PKCS8_ED25519_PREFIX.length + 32);
+  der.set(PKCS8_ED25519_PREFIX);
+  der.set(hexToBytes(seed), PKCS8_ED25519_PREFIX.length);
 
   return await crypto.subtle.importKey('pkcs8', der, { name: 'Ed25519' }, false, ['sign']);
 }

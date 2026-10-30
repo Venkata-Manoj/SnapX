@@ -92,6 +92,10 @@ await test('entitlement is Free when expired, failed or not active', () => {
   assert.equal(effectivePlan({ plan: 'pro', status: 'active', current_period_end: future }), 'pro');
   assert.equal(effectivePlan({ plan: 'max', status: 'authenticated', current_period_end: future }), 'max');
   assert.equal(effectivePlan({ plan: 'pro', status: 'active', current_period_end: past }), 'free');
+  assert.equal(effectivePlan({ plan: 'pro', status: 'cancelled', current_period_end: future }), 'pro');
+  assert.equal(effectivePlan({ plan: 'max', status: 'completed', current_period_end: future }), 'max');
+  assert.equal(effectivePlan({ plan: 'pro', status: 'cancelled', current_period_end: past }), 'free');
+  assert.equal(effectivePlan({ plan: 'pro', status: 'cancelled', current_period_end: null }), 'free');
   assert.equal(effectivePlan({ plan: 'pro', status: 'past_due', current_period_end: future }), 'free');
   assert.equal(effectivePlan({ plan: 'pro', status: 'halted', current_period_end: future }), 'free');
   assert.equal(effectivePlan({ plan: 'pro', status: 'paused', current_period_end: future }), 'free');
@@ -238,7 +242,8 @@ await test('the ledger insert fills every not-null column', () => {
 
 await test('Ed25519 plan pass verifies with the public key', async () => {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
-  const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const der = privateKey.export({ type: 'pkcs8', format: 'der' });
+  const seed = Buffer.from(der).subarray(-32).toString('hex');
   const now = Math.floor(Date.now() / 1000);
   const payload = {
     v: 1,
@@ -250,7 +255,7 @@ await test('Ed25519 plan pass verifies with the public key', async () => {
     exp: now + 33 * 86400,
   };
 
-  const token = await signEntitlement(payload, pem);
+  const token = await signEntitlement(payload, seed);
   const parts = token.split('.');
   assert.equal(parts.length, 2);
 
@@ -273,22 +278,43 @@ await test('Ed25519 accepts the 64-hex pass-private.hex seed', async () => {
 
   const token = await signEntitlement(
     { v: 1, aud: 'snapx-ext', sub: 'x', plan: 'free', iid: 'b'.repeat(32), iat: 1, exp: 2 },
-    seed,
+    seed.toUpperCase(),
   );
   const [body, signature] = token.split('.');
   assert.equal(token.split('.').length, 2);
   assert.equal(verifyEd25519(null, Buffer.from(body), publicKey, decodeBase64Url(signature)), true);
 });
 
-await test('Ed25519 accepts a secret with literal \\n escapes', async () => {
+await test('Ed25519 rejects PEM, PKCS8 and base64 secrets', async () => {
   const { privateKey } = generateKeyPairSync('ed25519');
   const pem = privateKey.export({ type: 'pkcs8', format: 'pem' });
-  const escaped = pem.replace(/\n/g, '\\n');
-  const token = await signEntitlement(
-    { v: 1, aud: 'snapx-ext', sub: 'x', plan: 'free', iid: 'c'.repeat(32), iat: 1, exp: 2 },
-    escaped,
-  );
-  assert.equal(token.split('.').length, 2);
+  const der = privateKey.export({ type: 'pkcs8', format: 'der' });
+  const seed = Buffer.from(der).subarray(-32).toString('hex');
+
+  const payload = {
+    v: 1,
+    aud: 'snapx-ext',
+    sub: 'x',
+    plan: 'free',
+    iid: 'c'.repeat(32),
+    iat: 1,
+    exp: 2,
+  };
+
+  for (const [label, value] of [
+    ['PEM', pem],
+    ['escaped PEM', pem.replace(/\n/g, '\\n')],
+    ['base64 PKCS8', Buffer.from(der).toString('base64')],
+    ['short hex', seed.slice(0, 62)],
+    ['long hex', `${seed}00`],
+    ['non-hex seed', 'z'.repeat(64)],
+  ]) {
+    await assert.rejects(
+      () => signEntitlement(payload, value),
+      /64-character hex Ed25519 seed/,
+      `${label} must be rejected`,
+    );
+  }
 });
 
 await test('the schema keeps the payment ledger private and nullable', () => {

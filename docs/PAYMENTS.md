@@ -26,7 +26,7 @@ account.html ◀── subscriptions row ◀── razorpay-webhook ◀── si
 | `supabase/functions/cancel-subscription/` | Signed-in. Cancels at the end of the paid period. |
 | `supabase/functions/change-subscription/` | Signed-in. Pro → Max now, Max → Pro at cycle end. |
 | `supabase/functions/delete-account/` | Signed-in. Cancels, then deletes the auth user. |
-| `supabase/functions/entitlement/` | Signed-in. Returns a seven-day Ed25519 token for the extension. |
+| `supabase/functions/entitlement/` | Signed-in. Returns a two-part Ed25519 plan pass for the extension. |
 | `src/js/checkout.js` | Pricing page: starts checkout, opens Razorpay, polls the row. |
 | `src/js/account.js` | Account page: plan, last payment, manage, cancel, delete. |
 | `src/lib/billing.js` | Shared plan names, paise formatting and function-error reader. |
@@ -78,7 +78,7 @@ The extension does not fetch the public key: it has one compiled in
 private half of that exact key, or every pass fails with `bad signature` even
 though the function returns 200.
 
-The current extension key is:
+The current extension **public** key is:
 
 ```
 d8451c06b55376d9bd82a3bc1dec21f899be0533102e7972ea50b25922c5126a
@@ -91,10 +91,9 @@ characters. Put that value in `supabase/.env.secrets` as a bare line:
 ENTITLEMENT_PRIVATE_KEY=<64 hex characters>
 ```
 
-A PKCS#8 PEM also works (real newlines, or `\n` escapes in the env file), but
-the seed is easier to compare and cannot be wrapped in headers by mistake. A
-PEM whose body is a bare seed is invalid: the function cannot parse it and
-returns `500 signing_failed`.
+Only that form is accepted. A PEM, PKCS#8, JWK or base64 value is rejected with
+`500 signing_failed`, so a malformed secret fails loudly instead of being
+guessed at.
 
 To derive the public key from whatever you have, without printing the secret:
 
@@ -119,18 +118,16 @@ supabase secrets set \
   RAZORPAY_PLAN_MAX=plan_…
 ```
 
-For the private key, an env file avoids shell newline problems:
+For the private key, an env file avoids shell history:
 
 ```dotenv
 # supabase/.env.secrets — git-ignored, never committed
-ENTITLEMENT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n…\n-----END PRIVATE KEY-----"
+ENTITLEMENT_PRIVATE_KEY=<64 hex characters>
 ```
 
 ```bash
 supabase secrets set --env-file supabase/.env.secrets
 ```
-
-The functions accept a real newline or a literal `\n` in the PEM.
 
 Optional: `ALLOWED_ORIGINS=https://snap-x-beta.vercel.app` restricts CORS to
 that origin. Without it, the functions reflect the configured production origin,
@@ -286,19 +283,21 @@ for. The danger-zone copy says so before the confirmation.
 
 ### `entitlement`
 
-`POST` with no body. Reads the caller's own `subscriptions` row server-side and
-signs:
+`POST { "iid": "<32 lowercase hex>" }`. Reads the caller's own `subscriptions`
+row server-side and signs exactly:
 
-```json
-{ "sub": "<user id>", "plan": "pro", "status": "active", "exp": 1790000000, "iat": 1789395200 }
+```
+token   = b64url(payload) + "." + b64url(ed25519_sign(ascii(b64url(payload))))
+payload = { "v":1, "aud":"snapx-ext", "sub":"<user uuid>", "plan":"free"|"pro"|"max",
+            "iid":"<32 hex>", "iat":<unix s>, "exp":<unix s> }
 ```
 
-`exp` is seven days after `iat`. The token is `header.payload.signature`,
-`alg: EdDSA`. A paid plan is returned only when the stored status is `active`
-or `authenticated` and `current_period_end` is null or in the future. Every
-other state — halted, past due, paused, cancelled, completed, expired — returns
-`plan: "free"`. If signing fails the function returns `500`; the extension
-treats that as Free.
+`exp` is `min(current_period_end, now + 35 days)` for a paid plan, so a pass
+never outlives the period the customer paid for. Free passes last 35 days. A
+cancelled or completed plan keeps the paid plan until `current_period_end`;
+halted, failed and paused plans are Free immediately. The plan comes from the
+server-side row, never from the request. If signing fails the function returns
+`500`; the extension treats that as Free.
 
 ## 4. Test-mode acceptance (B5)
 
@@ -353,13 +352,14 @@ token   = b64url(payload) + "." + b64url(ed25519_sign(ascii(b64url(payload))))
 payload = { v: 1, aud: "snapx-ext", sub, plan, iid, iat, exp }
 ```
 
-- Paid and active: `exp = min(current_period_end + 3 days, now + 35 days)`.
-- Free, cancelled, halted or past due: `plan = "free"`, `exp = now + 35 days`.
+- Paid and active: `exp = min(current_period_end, now + 35 days)`.
+- Cancelled or completed with time left: the paid plan until `current_period_end`.
+- Free, halted, failed or paused: `plan = "free"`, `exp = now + 35 days`.
 - `iid` is the extension's 32-hex install id and is echoed into the pass. A pass
   minted for one browser is rejected by another.
 
-`ENTITLEMENT_PRIVATE_KEY` accepts either the 64-hex seed from `pass-private.hex`
-or a PKCS8 PEM. It must be the private half of `keys/pass-public.hex` in the
+`ENTITLEMENT_PRIVATE_KEY` must be exactly the 64-hex seed from
+`pass-private.hex`. It must be the private half of `keys/pass-public.hex` in the
 extension build, or the extension rejects every pass with `bad signature`.
 
 ```powershell

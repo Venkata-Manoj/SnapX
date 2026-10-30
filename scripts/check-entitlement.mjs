@@ -10,7 +10,7 @@
  *   4. The pass verifies with the extension's public key and obeys every rule
  *      the extension enforces: v, aud, iid, iat, exp, 40-day lifetime.
  *   5. The expiry rule: Free is now + 35 days; paid and active is
- *      min(current_period_end + 3 days, now + 35 days).
+ *      min(current_period_end, now + 35 days), never past the paid period.
  *
  *   npm run check:entitlement
  *
@@ -57,15 +57,15 @@ function readEnv(url) {
 }
 
 function privateKeyFrom(value) {
-  const normalised = value.replace(/\\n/g, '\n').trim();
-  if (/^[0-9a-f]{64}$/i.test(normalised)) {
-    return createPrivateKey({
-      key: Buffer.concat([PKCS8_PREFIX, Buffer.from(normalised, 'hex')]),
-      format: 'der',
-      type: 'pkcs8',
-    });
+  const seed = String(value ?? '').trim();
+  if (!/^[0-9a-f]{64}$/i.test(seed)) {
+    throw new Error('ENTITLEMENT_PRIVATE_KEY must be a 64-character hex Ed25519 seed');
   }
-  return createPrivateKey(normalised);
+  return createPrivateKey({
+    key: Buffer.concat([PKCS8_PREFIX, Buffer.from(seed, 'hex')]),
+    format: 'der',
+    type: 'pkcs8',
+  });
 }
 
 const b64u = (value) =>
@@ -280,8 +280,12 @@ try {
   const pro = readPass('pro', await callEntitlement('a'.repeat(32), session.access_token));
   check('pro: plan is pro', pro.plan === 'pro', String(pro.plan));
   check(
-    'pro: exp is period end + 3 days',
-    Boolean(pro.payload) && Math.abs(pro.payload.exp - (proEnd + 3 * DAY)) <= 15,
+    'pro: exp is the period end',
+    Boolean(pro.payload) && Math.abs(pro.payload.exp - proEnd) <= 15,
+  );
+  check(
+    'pro: exp never passes the paid period end',
+    Boolean(pro.payload) && pro.payload.exp <= proEnd,
   );
 
   const farEnd = now + 60 * DAY;
@@ -303,7 +307,18 @@ try {
     'cancelled',
     await callEntitlement('a'.repeat(32), session.access_token),
   );
-  check('cancelled: plan is free', cancelled.plan === 'free', String(cancelled.plan));
+  check('cancelled: plan stays until the paid period ends', cancelled.plan === 'pro', String(cancelled.plan));
+  check(
+    'cancelled: exp never passes the paid period end',
+    Boolean(cancelled.payload) && cancelled.payload.exp <= farEnd,
+  );
+
+  await patchRow({ plan: 'pro', status: 'cancelled', current_period_end: iso(now - DAY) });
+  const cancelledEnded = readPass(
+    'cancelled, period over',
+    await callEntitlement('a'.repeat(32), session.access_token),
+  );
+  check('cancelled after the period: plan is free', cancelledEnded.plan === 'free', String(cancelledEnded.plan));
 
   await patchRow({ plan: 'pro', status: 'past_due', current_period_end: iso(farEnd) });
   const pastDue = readPass('past_due', await callEntitlement('a'.repeat(32), session.access_token));
