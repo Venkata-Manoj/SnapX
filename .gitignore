@@ -12,6 +12,11 @@ SITE_PHASE2_PROMPT.md
 .env.local
 *.pem
 *.key
+*.hex
+*.p12
+*.pfx
+*.jks
+keys/
 verifier/
 AUDIT_TODO.md
 supabase/.env
