@@ -3,7 +3,7 @@
  *
  * The Vite plugin (see vite.config.js) turns {{TOKEN}} in HTML into these values
  * at build time, so a rename is a one-file change. Flags are read by
- * <!-- @if FLAG --> … <!-- @endif --> blocks in the HTML.
+ * <!-- @if FLAG --> â€¦ <!-- @endif --> blocks in the HTML.
  *
  * Optional links and addresses are omitted when empty. `npm run build` prints a
  * warning only for required values that still look like placeholders.
@@ -34,6 +34,7 @@ export const SITE = {
   SUPPORT_RESPONSE_TIME: '2 working days',
 
   /* ---------- Links ---------- */
+  GITHUB_PROFILE_URL: 'https://github.com/Venkata-Manoj/', // maker link in the footer
   PRESS_KIT_URL: '', // add after release
   CHROME_WEB_STORE_URL: '', // add when the Chrome Web Store listing is live
   REPO_NAME: 'snapx-web',

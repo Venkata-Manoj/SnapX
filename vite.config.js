@@ -79,6 +79,7 @@ function brandHtml() {
           HAS_PRESS_KIT: hasPressKit,
           HAS_PROJECT_LINKS: hasPressKit,
           HAS_POSTAL_ADDRESS: Boolean(SITE.OPERATOR_POSTAL_ADDRESS),
+          HAS_PROFILE: Boolean(SITE.GITHUB_PROFILE_URL),
           HAS_PROVIDER_LOGIN: ['google', 'microsoft', 'apple'].some((provider) =>
             signin.has(provider),
           ),

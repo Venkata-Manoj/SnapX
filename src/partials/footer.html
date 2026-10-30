@@ -66,7 +66,7 @@
       <!-- @endif -->
 
       <div class="footer-note">
-        <p class="small">Made in Chennai by {{OPERATOR_NAME}}, a student at Saveetha School of Engineering.</p>
+        <p class="small">Made in Chennai by <!-- @if HAS_PROFILE --><a class="link" href="{{GITHUB_PROFILE_URL}}" target="_blank" rel="noopener">{{OPERATOR_NAME}}<span class="visually-hidden"> (opens in a new tab)</span></a><!-- @endif --><!-- @ifnot HAS_PROFILE -->{{OPERATOR_NAME}}<!-- @endif -->.</p>
         <p class="small footer-kind">{{BRAND_NAME}} is for fun and short breaks. Please don't use it to mislead people about whether you're present.</p>
       </div>
     </div>
