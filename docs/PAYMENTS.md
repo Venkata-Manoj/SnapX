@@ -220,12 +220,26 @@ The plan comes from `subscription.plan_id` first, because it survives a plan
 change; `notes.plan` is the fallback. `current_period_end` comes from
 `current_end`. `cancel_at_period_end` comes from `cancel_at_cycle_end`.
 `subscription.charged` also records `last_payment_at`,
-`last_payment_amount` (paise) and `last_payment_currency`.
+`last_payment_amount` (paise) and `last_payment_currency`. A successful payment
+(`subscription.charged`, `subscription.activated` or
+`subscription.authenticated` with a payment entity) records `last_payment_id`
+and clears `last_payment_reversed_at`. A refund or chargeback (`refund.created`,
+`refund.processed` or any `payment.dispute.*`) sets `last_payment_reversed_at`
+when it matches that payment; the next successful charge clears it.
 
 `halted`, `cancelled` and `completed` set `plan = 'free'` only when the paid
 period has ended (or there is no end date). Until then the customer keeps the
-plan they paid for. `refund.processed` is recorded in the ledger and does not
-change the plan; refunds stay a human decision under the refund policy.
+plan they paid for. Refunds and chargebacks do not change the plan; handling
+them stays a human decision under the refund policy.
+
+Renewal grace: an active Pro/Max subscription that will renew on its own (no
+`cancel_at_period_end`, no pending plan or replacement subscription, a provider
+subscription id, a recorded `last_payment_id` and no
+`last_payment_reversed_at`) gets `exp = min(now + 35 days, current_period_end +
+3 days)`; every other case, including cancelled, halted, paused, past due,
+refunded or replaced, keeps `exp = min(now + 35 days, current_period_end)`, and
+Free stays at `now + 35 days`. This covers the renewal charge that lands at
+`current_period_end`, before the customer next opens the site.
 
 The ledger stores only `event`, subscription/payment/refund ids, `plan_id`,
 `status`, `amount`, `currency`, `current_end` and `created_at`. No name, email,
@@ -363,8 +377,10 @@ token   = b64url(payload) + "." + b64url(ed25519_sign(ascii(b64url(payload))))
 payload = { v: 1, aud: "snapx-ext", sub, plan, iid, iat, exp }
 ```
 
-- Paid and active: `exp = min(current_period_end, now + 35 days)`.
-- Cancelled or completed with time left: the paid plan until `current_period_end`.
+- Active and safe to renew: `exp = min(current_period_end + 3 days, now + 35
+  days)` (see the renewal-grace paragraph in §3).
+- Other paid cases (cancel at cycle end, cancelled, completed, pending
+  replacement, refunded): `exp = min(current_period_end, now + 35 days)`.
 - Free, halted, failed or paused: `plan = "free"`, `exp = now + 35 days`.
 - `iid` is the extension's 32-hex install id and is echoed into the pass. A pass
   minted for one browser is rejected by another.
