@@ -54,3 +54,14 @@ export function checkoutGate(
 
   return { action: 'create' };
 }
+
+/**
+ * Razorpay refuses a plan update on a UPI or e-mandate authorisation with
+ * `subscriptions cannot be updated when payment mode is UPI`. Card mandates
+ * can be updated, so the fallback must only run for these refusals.
+ */
+export function isMandateLocked(description: string): boolean {
+  return /cannot be updated when payment mode is upi|emandate|e-mandate|cannot be updated/i.test(
+    description,
+  );
+}

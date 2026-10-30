@@ -1,6 +1,7 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
 import { appUrl } from '../lib/auth.js';
 import { readFunctionError } from '../lib/billing.js';
+import { loadRazorpay, themeColour } from '../lib/razorpay.js';
 import { pingExtension, requestPass } from '../extension-bridge.js';
 
 /**
@@ -77,41 +78,6 @@ function offerManage() {
 function goToLogin(plan) {
   const next = encodeURIComponent(`${window.location.pathname}#${plan}`);
   window.location.assign(`${appUrl('login.html')}?next=${next}`);
-}
-
-let razorpayLoader = null;
-
-function loadRazorpay() {
-  if (typeof window.Razorpay === 'function') return Promise.resolve();
-  if (razorpayLoader) return razorpayLoader;
-
-  razorpayLoader = new Promise((resolve, reject) => {
-    const existing = document.querySelector('script[data-razorpay-checkout]');
-    if (existing) {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('checkout script failed')));
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.dataset.razorpayCheckout = 'true';
-    script.referrerPolicy = 'no-referrer';
-    script.addEventListener('load', () => resolve());
-    script.addEventListener('error', () => reject(new Error('checkout script failed')));
-    document.head.append(script);
-  }).catch((error) => {
-    razorpayLoader = null;
-    throw error;
-  });
-
-  return razorpayLoader;
-}
-
-function themeColour() {
-  const value = getComputedStyle(document.documentElement).getPropertyValue('--ver').trim();
-  return /^#[0-9a-f]{3,8}$/i.test(value) ? value : '#c8432a';
 }
 
 async function confirmPayment(plan) {

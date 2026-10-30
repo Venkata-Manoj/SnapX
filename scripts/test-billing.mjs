@@ -16,6 +16,7 @@ import {
   ledgerRow,
   mapStatus,
   pendingPlanHolds,
+  pendingSubscriptionOutcome,
   planFrom,
   sha256Hex,
   storedStatus,
@@ -25,7 +26,7 @@ import {
   unixToIso,
 } from '../supabase/functions/_shared/webhook.ts';
 import { signEntitlement } from '../supabase/functions/_shared/token.ts';
-import { checkoutGate } from '../supabase/functions/_shared/checkout.ts';
+import { checkoutGate, isMandateLocked } from '../supabase/functions/_shared/checkout.ts';
 
 let passed = 0;
 const test = async (name, fn) => {
@@ -175,6 +176,32 @@ await test('a scheduled downgrade holds the paid plan until the period ends', ()
     false,
   );
   assert.equal(pendingPlanHolds(null, 'pro'), false);
+});
+
+await test('a future UPI subscription switches in only when it activates', () => {
+  assert.equal(pendingSubscriptionOutcome('subscription.authenticated', 'authenticated'), 'authenticated');
+  assert.equal(pendingSubscriptionOutcome('subscription.activated', 'active'), 'switch');
+  assert.equal(pendingSubscriptionOutcome('subscription.charged', 'active'), 'switch');
+  assert.equal(pendingSubscriptionOutcome('subscription.pending', 'pending'), 'ignore');
+  assert.equal(pendingSubscriptionOutcome('payment.failed', 'failed'), 'clear');
+  assert.equal(pendingSubscriptionOutcome('subscription.cancelled', 'cancelled'), 'clear');
+  assert.equal(pendingSubscriptionOutcome('subscription.expired', 'expired'), 'clear');
+  assert.equal(pendingSubscriptionOutcome('subscription.halted', 'halted'), 'clear');
+  assert.equal(pendingSubscriptionOutcome('subscription.updated', 'active'), 'switch');
+  assert.equal(pendingSubscriptionOutcome('subscription.updated', 'authenticated'), 'authenticated');
+  assert.equal(pendingSubscriptionOutcome('subscription.updated', 'cancelled'), 'clear');
+  assert.equal(pendingSubscriptionOutcome('subscription.updated', 'pending'), 'ignore');
+});
+
+await test('only the exact mandate-locked refusals take the UPI fallback', () => {
+  assert.equal(
+    isMandateLocked('subscriptions cannot be updated when payment mode is UPI'),
+    true,
+  );
+  assert.equal(isMandateLocked('Subscription cannot be updated when payment mode is Emandate'), true);
+  assert.equal(isMandateLocked('subscription not found'), false);
+  assert.equal(isMandateLocked('Internal server error'), false);
+  assert.equal(isMandateLocked(''), false);
 });
 
 await test('unix timestamps convert, and junk becomes null', () => {

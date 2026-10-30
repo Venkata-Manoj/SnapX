@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
         started_at: null,
         pending_plan: null,
         pending_plan_at: null,
+        pending_subscription_id: null,
       },
       { onConflict: 'user_id' },
     );

@@ -13,6 +13,8 @@ export type SubscriptionRow = {
   current_period_end?: string | null;
   pending_plan?: string | null;
   pending_plan_at?: string | null;
+  provider_subscription_id?: string | null;
+  pending_subscription_id?: string | null;
 };
 
 const encoder = new TextEncoder();
@@ -150,6 +152,44 @@ export function pendingPlanHolds(
 
   const at = Date.parse(row.pending_plan_at);
   return Number.isFinite(at) && at > nowMs;
+}
+
+/**
+ * What to do with an event that belongs to the future subscription created for
+ * a UPI upgrade.
+ *
+ * - `authenticated`: the customer authorised the new mandate. The old plan
+ *   keeps running and must be stopped at the period end.
+ * - `switch`: the new subscription started; move the row onto it.
+ * - `clear`: the future subscription died before it started. The old plan is
+ *   untouched; only the pending fields go.
+ * - `ignore`: nothing has changed yet (for example `subscription.pending`).
+ */
+export type PendingOutcome = 'authenticated' | 'switch' | 'clear' | 'ignore';
+
+export function pendingSubscriptionOutcome(
+  event: string,
+  entityStatus?: string | null,
+): PendingOutcome {
+  if (event === 'subscription.activated' || event === 'subscription.charged') return 'switch';
+  if (event === 'subscription.authenticated') return 'authenticated';
+  if (event === 'payment.failed') return 'clear';
+  if (
+    event === 'subscription.cancelled' ||
+    event === 'subscription.completed' ||
+    event === 'subscription.expired' ||
+    event === 'subscription.halted'
+  ) {
+    return 'clear';
+  }
+  if (event === 'subscription.updated') {
+    if (entityStatus === 'active') return 'switch';
+    if (entityStatus === 'authenticated') return 'authenticated';
+    if (entityStatus === 'cancelled' || entityStatus === 'expired' || entityStatus === 'halted') {
+      return 'clear';
+    }
+  }
+  return 'ignore';
 }
 
 /** Unix seconds (Razorpay) to an ISO timestamp, or null. */

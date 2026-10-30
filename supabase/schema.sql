@@ -54,9 +54,18 @@ alter table public.subscriptions add column if not exists last_payment_at timest
 alter table public.subscriptions add column if not exists last_payment_amount integer;
 alter table public.subscriptions add column if not exists last_payment_currency text;
 
+-- A UPI mandate cannot be updated in place, so an upgrade creates a second
+-- Razorpay subscription that starts when the current period ends. This column
+-- holds that future subscription until its first activation switches it in.
+alter table public.subscriptions add column if not exists pending_subscription_id text;
+
 create unique index if not exists subscriptions_provider_subscription_id_key
   on public.subscriptions (provider_subscription_id)
   where provider_subscription_id is not null;
+
+create unique index if not exists subscriptions_pending_subscription_id_key
+  on public.subscriptions (pending_subscription_id)
+  where pending_subscription_id is not null;
 
 -- The deployed table only stores these six states. Razorpay's `authenticated`,
 -- `paused` and `expired` are folded into them by the webhook before writing,

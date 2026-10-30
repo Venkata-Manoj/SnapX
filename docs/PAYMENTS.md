@@ -236,6 +236,11 @@ from its first draft. The handler fills both (`provider = 'razorpay'`,
 `event_type` = the event name); an insert that omits them fails and Razorpay
 receives a 500 for every event.
 
+A replay of a processed event returns `duplicate` and changes nothing. A replay
+of an event whose handler failed re-runs it: the row is kept with
+`error = 'handler_failed'`, and the next delivery retries instead of treating
+the payment as already done.
+
 ### `cancel-subscription`
 
 `POST` with no body. Calls `POST /v1/subscriptions/{id}/cancel` with
@@ -263,12 +268,18 @@ therefore keeps the current plan while `pending_plan_at` is in the future, and
 only lets the new plan take effect (and clears `pending_plan`) once the period
 has ended and the next event arrives.
 
-**Limitation:** Razorpay only allows a plan change on a card-authorised
-mandate. UPI and e-mandate subscriptions cannot be changed. The function maps
-that provider error to `409 plan_change_unsupported` and the account page tells
-the customer to cancel and subscribe again. This is the simplest correct
-approach that keeps one subscription and Razorpay's own proration; it is
-documented rather than hidden.
+**UPI and e-mandate:** Razorpay refuses a plan update on these mandates with
+`subscriptions cannot be updated when payment mode is UPI`. The function then
+creates a second subscription for the target plan with
+`start_at = current_period_end`, stores its id in `pending_subscription_id`, and
+returns `{ requires_checkout: true, subscription_id, key_id }`. The account page
+opens Checkout so the customer authorises the new mandate now. On
+`subscription.authenticated` the webhook cancels the old subscription at the
+cycle end; on `subscription.activated` or `subscription.charged` it moves the
+row to the new subscription and plan. If the customer closes Checkout, the page
+calls the function with `{ abandon: true }`, which cancels the future
+subscription and clears the pending fields. The old plan keeps running until
+the paid period ends in every case.
 
 ### `delete-account`
 

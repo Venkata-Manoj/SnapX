@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase.js';
 import { appUrl, authErrorMessage, displayName, formatDate, providerName, setAvatar } from '../lib/auth.js';
 import { formatMoney, planName, readFunctionError } from '../lib/billing.js';
+import { loadRazorpay, themeColour } from '../lib/razorpay.js';
 import { extensionReady, lastPassResult, pingExtension } from '../extension-bridge.js';
 
 const loading = document.querySelector('[data-account-loading]');
@@ -153,7 +154,9 @@ function renderPlan(row) {
 
   if (planDateRow) planDateRow.hidden = !hasEnd;
 
-  if (row?.cancel_at_period_end) {
+  // A scheduled upgrade cancels the old plan at the period end, so show the
+  // switch rather than "your plan ends".
+  if (row?.cancel_at_period_end && !pending) {
     if (planSummary) {
       planSummary.textContent = hasEnd
         ? `Your ${name} plan ends on ${endDate}.`
@@ -225,7 +228,9 @@ function renderManage() {
       : `You are on ${name}.`;
   }
 
-  if (switchBlock) switchBlock.hidden = !canChange;
+  // A scheduled change is already set up; offering the switch again would
+  // create a second future subscription.
+  if (switchBlock) switchBlock.hidden = !canChange || Boolean(planRow.pending_plan);
 
   if (canChange) {
     const target = plan === 'max' ? 'pro' : 'max';
@@ -276,6 +281,80 @@ function openManage() {
   window.requestAnimationFrame(() => manageClose?.focus());
 }
 
+async function startFutureCheckout(target, data) {
+  const subscriptionId = String(data?.subscription_id ?? '');
+  const key = String(data?.key_id ?? '');
+  const startsAt = data?.current_period_end ?? planRow?.current_period_end ?? null;
+  const startDate = formatDate(startsAt);
+  const currentName = planName(planRow?.plan || 'free');
+  const when = startDate === '-' ? 'at the end of this period' : `on ${startDate}`;
+
+  if (!subscriptionId || !key) {
+    setManageStatus("We couldn't set up the new plan. Try again in a moment.", 'error');
+    return;
+  }
+
+  try {
+    await loadRazorpay();
+  } catch {
+    setManageStatus(
+      'The payment window could not load. Check your connection and try again.',
+      'error',
+    );
+    return;
+  }
+
+  let settled = false;
+
+  const checkout = new window.Razorpay({
+    key,
+    subscription_id: subscriptionId,
+    name: document.body.dataset.brand || 'SnapX',
+    description: `${planName(target)} plan, monthly`,
+    prefill: { email: user?.email || '' },
+    theme: { color: themeColour() },
+    handler: () => {
+      settled = true;
+      planRow = { ...planRow, pending_plan: target, pending_plan_at: startsAt };
+      renderPlan(planRow);
+      renderManage();
+      setManageStatus(
+        `${planName(target)} starts ${when}. You keep ${currentName} until then.`,
+        'ok',
+      );
+      window.setTimeout(() => {
+        if (user) loadPlan(user);
+      }, 4000);
+    },
+    modal: {
+      ondismiss: async () => {
+        if (settled) return;
+        // Nothing was authorised. Drop the future subscription so the account
+        // page does not claim a change that will never happen.
+        try {
+          await supabase.functions.invoke('change-subscription', {
+            body: { plan: target, abandon: true },
+          });
+        } catch {
+          // The row is reconciled on the next load either way.
+        }
+        setManageStatus('No change was made. Your plan stays as it is.');
+        if (user) loadPlan(user);
+      },
+    },
+  });
+
+  checkout.on('payment.failed', () => {
+    settled = true;
+    setManageStatus('That authorisation did not go through. Nothing changed.', 'error');
+  });
+
+  setManageStatus(
+    `Authorise ${planName(target)} to start ${when}. You keep ${currentName} until then.`,
+  );
+  checkout.open();
+}
+
 async function switchPlan(target) {
   if (manageBusy || !target || !planRow || !supabase) return;
 
@@ -302,6 +381,13 @@ async function switchPlan(target) {
       info.message || "We couldn't change the plan. Try again in a moment.",
       'error',
     );
+    return;
+  }
+
+  // A UPI mandate cannot be updated in place. The function created a second
+  // subscription that starts when this period ends; Checkout authorises it.
+  if (data?.requires_checkout) {
+    await startFutureCheckout(target, data);
     return;
   }
 
