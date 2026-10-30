@@ -704,6 +704,10 @@
   margin-top: var(--space-5);
 }
 
+.effects__note {
+  margin-top: var(--space-5);
+}
+
 /* ---------- 6.5 Popup ---------- */
 
 .popup-grid {

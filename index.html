@@ -38,7 +38,7 @@
     "operatingSystem": "Windows, macOS, Linux, ChromeOS (Google Chrome {{CHROME_MIN_VERSION}}+)",
     "softwareVersion": "{{VERSION}}",
     "offers": {{JSONLD_OFFERS}},
-    "description": "Snap your fingers on a video call and turn to dust. Your mic mutes. Runs entirely on your computer, and the Free plan is free forever.",
+    "description": "Snap your fingers on a video call and vanish: dust, embers, glitch, a portal or a fade. Your mic mutes. Runs entirely on your computer, and Dust on Meet and Zoom is free forever.",
     "url": "{{SITE_URL}}/",
     "author": { "@type": "Person", "name": "{{OPERATOR_NAME}}" }
   }
@@ -48,7 +48,9 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "Is it really free?", "acceptedAnswer": { "@type": "Answer", "text": "The Free plan is free forever: the Dust effect on Google Meet and Zoom. Pro and Max add more effects and more call apps." } }
+      { "@type": "Question", "name": "Is it really free?", "acceptedAnswer": { "@type": "Answer", "text": "The Free plan is free forever: Dust on Google Meet and Zoom. Pro and Max unlock all five effects, Teams and X, and Be right back." } }
+      ,{ "@type": "Question", "name": "Which effects are included?", "acceptedAnswer": { "@type": "Answer", "text": "All five are live in 1.5.0: Dust, Ember, Glitch, Portal and Fade. Dust is free on Meet and Zoom. The other four need Pro or Max." } }
+      ,{ "@type": "Question", "name": "What's coming in 1.5.1?", "acceptedAnswer": { "@type": "Answer", "text": "A welcome flow in the popup, floating controls, and a clearer plan status with Refresh plan. It is not live yet." } }
       ,{ "@type": "Question", "name": "Does it record or upload anything?", "acceptedAnswer": { "@type": "Answer", "text": "No video, audio or images are ever uploaded. If you sign in, {{BRAND_NAME}} sends only your account token to check your plan." } }
       ,{ "@type": "Question", "name": "Can I cancel anytime?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Cancel from your account page, and you keep your plan until the end of the period you paid for." } }
       <!-- @if PAYMENTS_ENABLED -->
@@ -386,36 +388,38 @@
     <div class="container">
       <div class="section-head" data-reveal>
         <p class="eyebrow">EFFECTS</p>
-        <h2 class="h2" id="effects-title" data-wipe>Dust today. More on the way.</h2>
+        <h2 class="h2" id="effects-title" data-wipe>Five ways to disappear.</h2>
       </div>
 
       <ul class="effects" data-reveal-stagger tabindex="0" aria-label="Effect previews">
         <li class="effect">
           <div class="effect__frame"><canvas class="effect__canvas" data-effect="dust" width="240" height="300" role="img" aria-label="Preview: a silhouette breaks into particles that drift away on the wind."></canvas></div>
-          <div class="effect__meta"><h3 class="effect__name">Dust</h3><span class="badge badge--available">Available</span></div>
+          <div class="effect__meta"><h3 class="effect__name">Dust</h3><span class="badge badge--available">Free</span></div>
           <p class="effect__copy small muted">Thousands of particles drift away on the wind.</p>
         </li>
-        <li class="effect effect--soon">
+        <li class="effect">
           <div class="effect__frame"><canvas class="effect__canvas" data-effect="ember" width="240" height="300" role="img" aria-label="Preview: a silhouette burns away into glowing sparks rising upward."></canvas></div>
-          <div class="effect__meta"><h3 class="effect__name">Ember</h3><span class="badge badge--soon">Coming soon</span></div>
+          <div class="effect__meta"><h3 class="effect__name">Ember</h3><span class="badge badge--available">Pro &amp; Max</span></div>
           <p class="effect__copy small muted">Burn away into glowing sparks.</p>
         </li>
-        <li class="effect effect--soon">
+        <li class="effect">
           <div class="effect__frame"><canvas class="effect__canvas" data-effect="glitch" width="240" height="300" role="img" aria-label="Preview: a silhouette breaks into horizontal scan lines and static."></canvas></div>
-          <div class="effect__meta"><h3 class="effect__name">Glitch</h3><span class="badge badge--soon">Coming soon</span></div>
+          <div class="effect__meta"><h3 class="effect__name">Glitch</h3><span class="badge badge--available">Pro &amp; Max</span></div>
           <p class="effect__copy small muted">Break up into scan lines and static.</p>
         </li>
-        <li class="effect effect--soon">
+        <li class="effect">
           <div class="effect__frame"><canvas class="effect__canvas" data-effect="portal" width="240" height="300" role="img" aria-label="Preview: a dashed vermilion ring opens and a silhouette steps through it."></canvas></div>
-          <div class="effect__meta"><h3 class="effect__name">Portal</h3><span class="badge badge--soon">Coming soon</span></div>
+          <div class="effect__meta"><h3 class="effect__name">Portal</h3><span class="badge badge--available">Pro &amp; Max</span></div>
           <p class="effect__copy small muted">Step through a ring and you're gone.</p>
         </li>
-        <li class="effect effect--soon">
+        <li class="effect">
           <div class="effect__frame"><canvas class="effect__canvas" data-effect="fade" width="240" height="300" role="img" aria-label="Preview: a silhouette fades quietly into the empty room."></canvas></div>
-          <div class="effect__meta"><h3 class="effect__name">Fade</h3><span class="badge badge--soon">Coming soon</span></div>
+          <div class="effect__meta"><h3 class="effect__name">Fade</h3><span class="badge badge--available">Pro &amp; Max</span></div>
           <p class="effect__copy small muted">A quiet, slow fade to the empty room.</p>
         </li>
       </ul>
+
+      <p class="effects__note small muted" data-reveal>All five effects are live in 1.5.0. Dust is free on Meet and Zoom; Ember, Glitch, Portal and Fade come with Pro and Max.</p>
     </div>
   </section>
 
@@ -563,10 +567,10 @@
           <p class="eyebrow">PRICING</p>
           <h2 class="h2" id="pricing-title" data-wipe>Free to start. Pro when you want more.</h2>
         </div>
-        <p class="body section-head__aside">Dust on Meet and Zoom is free forever. Pro adds every new effect as it launches, plus Teams and X.</p>
+        <p class="body section-head__aside">Dust on Meet and Zoom is free forever. Pro and Max unlock all five effects, Teams and X, and Be right back.</p>
       </div>
 
-      <p class="pricing-note small">Only Dust is live today. <a class="link" href="#effects">Ember, Glitch, Portal and Fade are coming soon.</a></p>
+      <p class="pricing-note small">All five effects are live in 1.5.0. <a class="link" href="#effects">Dust is free; Ember, Glitch, Portal and Fade are in Pro and Max.</a></p>
 
       {{PRICING_CARDS}}
 
@@ -587,7 +591,15 @@
       <div class="faq-list" data-reveal>
         <details>
           <summary><span class="faq-q">Is it really free?</span></summary>
-          <div class="faq-a"><p>The Free plan is free forever: the Dust effect on Google Meet and Zoom. Pro and Max add more effects and more call apps.</p></div>
+          <div class="faq-a"><p>The Free plan is free forever: Dust on Google Meet and Zoom. Pro and Max unlock all five effects, Teams and X, and Be right back.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">Which effects are included?</span></summary>
+          <div class="faq-a"><p>All five are live in 1.5.0: Dust, Ember, Glitch, Portal and Fade. Dust is free on Meet and Zoom. The other four need Pro or Max.</p></div>
+        </details>
+        <details>
+          <summary><span class="faq-q">What's coming in 1.5.1?</span></summary>
+          <div class="faq-a"><p>A welcome flow in the popup, floating controls, and a clearer plan status with Refresh plan. It is not live yet.</p></div>
         </details>
         <details>
           <summary><span class="faq-q">Does it record or upload anything?</span></summary>
@@ -653,15 +665,14 @@
       </div>
 
       <ul class="roadmap" data-reveal-stagger>
-        <li class="roadmap__item roadmap__item--next"><span class="roadmap__dot" aria-hidden="true"></span>New vanish styles</li>
-        <li class="roadmap__item">Snap-back animations</li>
-        <li class="roadmap__item">Sound packs</li>
-        <li class="roadmap__item">Wave &amp; double-snap gestures</li>
-        <li class="roadmap__item">Floating mini controls</li>
-        <li class="roadmap__item">Rounded cutouts</li>
-        <li class="roadmap__item">Timed vanish</li>
-        <li class="roadmap__item">"Be right back" freeze-frame</li>
-        <li class="roadmap__item">Teleport</li>
+        <li class="roadmap__item roadmap__item--next"><span class="roadmap__dot" aria-hidden="true"></span>Welcome flow and floating controls<span class="roadmap__status mono">1.5.1</span></li>
+        <li class="roadmap__item roadmap__item--next"><span class="roadmap__dot" aria-hidden="true"></span>Plan status and Refresh plan<span class="roadmap__status mono">1.5.1</span></li>
+        <li class="roadmap__item">Sound packs<span class="roadmap__status mono">1.6</span></li>
+        <li class="roadmap__item">Wave &amp; double-snap gestures<span class="roadmap__status mono">1.6</span></li>
+        <li class="roadmap__item">Teleport<span class="roadmap__status mono">1.6</span></li>
+        <li class="roadmap__item">Per-site settings<span class="roadmap__status mono">1.6</span></li>
+        <li class="roadmap__item">Rounded cutouts<span class="roadmap__status mono">1.6</span></li>
+        <li class="roadmap__item">Themes<span class="roadmap__status mono">1.6</span></li>
         <li class="roadmap__item">Chrome Web Store</li>
       </ul>
 

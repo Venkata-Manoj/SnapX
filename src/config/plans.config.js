@@ -11,9 +11,7 @@ export const PLANS = [
     period: null,
     tagline: 'Snap and vanish, on us.',
     features: [
-      'Dust effect',
-      'Google Meet',
-      'Zoom',
+      'Dust effect on Meet and Zoom',
       'Snap, shortcut and button triggers',
       'On-device, private',
     ],
@@ -28,7 +26,7 @@ export const PLANS = [
     tagline: 'Every effect, every call app.',
     features: [
       'Everything in Free',
-      'All effects as they launch',
+      'All five effects: Dust, Ember, Glitch, Portal, Fade',
       'Teams and X calls',
       'Be right back freeze-frame',
     ],
@@ -42,9 +40,7 @@ export const PLANS = [
     tagline: "First in line for what's next.",
     features: [
       'Everything in Pro',
-      'Teams and X calls',
-      'Be right back freeze-frame',
-      'Early access to new effects and features',
+      'Early access to labs features',
       'Priority support',
     ],
     cta: { label: 'Get Max', action: 'checkout' },

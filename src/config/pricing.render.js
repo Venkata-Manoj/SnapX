@@ -49,7 +49,7 @@ export function renderPricing({ base = '/', onHome = false, priceSymbol = '₹' 
 
     const features = plan.features
       .map((feature) => {
-        const label = /All effects as they launch/i.test(feature)
+        const label = /all five effects/i.test(feature)
           ? `<a class="link" href="${esc(effectsHref)}">${esc(feature)}</a>`
           : esc(feature);
         return `<li>${label}</li>`;

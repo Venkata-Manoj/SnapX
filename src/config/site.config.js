@@ -15,7 +15,7 @@ export const SITE = {
   TAGLINE: 'Snap to vanish. Snap to return.',
   SITE_URL: 'https://snap-x-beta.vercel.app', // final origin, no trailing slash
   SITE_DESCRIPTION:
-    'A Chrome extension for Google Meet, Teams, Zoom and X. Snap your fingers and turn to dust, and your mic mutes. Everything runs on your computer.',
+    'Snap your fingers on a Meet, Teams, Zoom or X call and vanish: dust, embers, glitch, a portal or a fade. Your mic mutes. Dust is free forever.',
 
   /* ---------- Contact ---------- */
   CONTACT_EMAIL: 'call.snapx@gmail.com',
@@ -45,7 +45,7 @@ export const SITE = {
   PAYMENTS_ENABLED: true, // Razorpay test mode; live keys are Supabase secrets
 
   /* ---------- Product facts ---------- */
-  VERSION: '1.4.0',
+  VERSION: '1.5.0',
   CHROME_MIN_VERSION: '116',
   PAYMENT_PROVIDER: 'Razorpay',
   EMAIL_PROVIDER_NAME: 'Google (Gmail SMTP)',
