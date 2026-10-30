@@ -23,7 +23,6 @@ let extension = null;
 let inFlight = false;
 let lastAutoSend = 0;
 let lastResult = null;
-let lastHelloAt = 0;
 
 function isFromExtension(event) {
   return (
@@ -95,7 +94,6 @@ window.addEventListener('message', (event) => {
   const data = event.data;
 
   if (data.type === 'hello') {
-    lastHelloAt = Date.now();
     extension = {
       iid: typeof data.iid === 'string' ? data.iid : '',
       version: data.version,
@@ -134,11 +132,6 @@ window.addEventListener('message', (event) => {
 /** True once the extension has said hello on this page. */
 export function extensionReady() {
   return Boolean(extension);
-}
-
-/** The extension's last hello, or null before the first one. */
-export function extensionInfo() {
-  return extension ? { ...extension, helloAt: lastHelloAt } : null;
 }
 
 /** The most recent answer from the extension, or null before the first one. */

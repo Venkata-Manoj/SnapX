@@ -20,13 +20,13 @@ const PKCS8_ED25519_PREFIX = new Uint8Array([
   0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20,
 ]);
 
-export function base64Url(bytes: Uint8Array): string {
+function base64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-export function base64UrlJson(value: unknown): string {
+function base64UrlJson(value: unknown): string {
   return base64Url(encoder.encode(JSON.stringify(value)));
 }
 

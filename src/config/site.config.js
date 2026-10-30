@@ -69,5 +69,3 @@ export const UNFILLED = [
 ]
   .filter(([, value]) => !value || /example\.com|to be added/i.test(String(value)))
   .map(([key]) => key);
-
-export default SITE;

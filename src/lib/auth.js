@@ -6,7 +6,7 @@
 const rawBase = document.body?.dataset.base || '/';
 
 /** Deploy base path, always with a trailing slash. */
-export const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
 /** Turn a page name into an absolute-path URL inside the deploy base. */
 export const appUrl = (path = '') => `${base}${String(path).replace(/^\/+/, '')}`;
