@@ -111,3 +111,77 @@ export function authErrorMessage(error) {
   }
   return 'Something went wrong. Try again in a moment.';
 }
+
+/** The one sentence an old or broken sign-in link is allowed to show. */
+export const EXPIRED_LINK_MESSAGE = 'This link expired. Sign in with your code instead.';
+
+/**
+ * Read the auth parameters Supabase can put in a URL. Old magic-link emails
+ * use `?code=` (PKCE) or `#access_token=` (implicit), and failures arrive as
+ * `error` / `error_description` in either place.
+ */
+export function readAuthLink(search = window.location.search, hash = window.location.hash) {
+  const query = new URLSearchParams(search);
+  const fragment = new URLSearchParams(String(hash).replace(/^#/, ''));
+  const get = (key) => query.get(key) || fragment.get(key);
+  const error = [get('error'), get('error_code'), get('error_description')]
+    .filter(Boolean)
+    .join(' ');
+  const code = query.get('code');
+  const accessToken = fragment.get('access_token');
+  const refreshToken = fragment.get('refresh_token');
+
+  return {
+    query,
+    fragment,
+    error,
+    code,
+    accessToken,
+    refreshToken,
+    hasAuthParams: Boolean(error || code || accessToken),
+  };
+}
+
+/** Remove the one-time code, tokens and error text from the address bar. */
+export function cleanAuthUrl() {
+  window.history.replaceState(null, '', window.location.pathname);
+}
+
+/** The message for an error that arrived in the URL, not from verifyOtp. */
+export function authLinkError(link) {
+  if (!link?.error) return '';
+  if (/access_denied|cancelled|canceled/i.test(link.error)) return 'Sign-in was cancelled.';
+  return EXPIRED_LINK_MESSAGE;
+}
+
+/**
+ * Finish a link-based sign-in. `detectSessionInUrl` may already have exchanged
+ * a PKCE code by the time this runs, so a failed exchange falls back to the
+ * stored session instead of declaring the link dead too early.
+ */
+export async function finishAuthLink(client, link) {
+  if (!client) return { session: null, error: null };
+
+  if (link?.code) {
+    const { data } = await client.auth.exchangeCodeForSession(link.code);
+    if (data?.session) return { session: data.session, error: null };
+  }
+
+  if (link?.accessToken && link?.refreshToken) {
+    const { data } = await client.auth.setSession({
+      access_token: link.accessToken,
+      refresh_token: link.refreshToken,
+    });
+    if (data?.session) return { session: data.session, error: null };
+  }
+
+  // `detectSessionInUrl` runs asynchronously when the client is created. Give
+  // it a short window to finish before deciding the link is unusable.
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const { data } = await client.auth.getSession();
+    if (data?.session) return { session: data.session, error: null };
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+  }
+
+  return { session: null, error: null };
+}

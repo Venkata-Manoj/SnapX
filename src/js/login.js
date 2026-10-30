@@ -1,5 +1,14 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
-import { appUrl, authErrorMessage, safeNext } from '../lib/auth.js';
+import {
+  appUrl,
+  authErrorMessage,
+  authLinkError,
+  cleanAuthUrl,
+  EXPIRED_LINK_MESSAGE,
+  finishAuthLink,
+  readAuthLink,
+  safeNext,
+} from '../lib/auth.js';
 
 const statusEl = document.querySelector('[data-auth-status]');
 const emailForm = document.querySelector('[data-email-form]');
@@ -16,6 +25,7 @@ const CODE_LENGTH = 8;
 
 const params = new URLSearchParams(window.location.search);
 const next = safeNext(params.get('next'), appUrl('account.html'));
+const link = readAuthLink();
 
 let pendingEmail = '';
 let cooldown = null;
@@ -95,6 +105,34 @@ function markCodeInvalid(invalid) {
   });
 }
 
+// An old link can land here instead of the callback page. Finish it rather
+// than leaving a blank sign-in form, then clean the one-time parameters.
+if (link.hasAuthParams) {
+  (async () => {
+    if (link.error) {
+      cleanAuthUrl();
+      setStatus(authLinkError(link), 'error');
+      return;
+    }
+
+    if (!supabase) {
+      cleanAuthUrl();
+      setStatus('Sign-in is not configured on this site yet.', 'error');
+      return;
+    }
+
+    const { session } = await finishAuthLink(supabase, link);
+    cleanAuthUrl();
+
+    if (session) {
+      window.location.replace(next);
+      return;
+    }
+
+    setStatus(EXPIRED_LINK_MESSAGE, 'error');
+  })();
+}
+
 async function sendCode(email, { resend = false } = {}) {
   if (!supabase) {
     setStatus('Sign-in is not configured on this site yet.', 'error');
@@ -104,12 +142,11 @@ async function sendCode(email, { resend = false } = {}) {
   const button = resend ? resendButton : sendButton;
   setBusy(button, true, resend ? 'Sending…' : 'Sending code…');
 
+  // No emailRedirectTo: the email is a code, not a link. New and returning
+  // users both get the same eight-digit code and verify it on this page.
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: {
-      shouldCreateUser: true,
-      emailRedirectTo: `${window.location.origin}${appUrl('auth/callback.html')}?next=${encodeURIComponent(next)}`,
-    },
+    options: { shouldCreateUser: true },
   });
 
   setBusy(button, false);

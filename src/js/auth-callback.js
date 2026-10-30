@@ -1,8 +1,15 @@
 import { supabase } from '../lib/supabase.js';
-import { appUrl, authErrorMessage, safeNext } from '../lib/auth.js';
+import {
+  appUrl,
+  authLinkError,
+  cleanAuthUrl,
+  EXPIRED_LINK_MESSAGE,
+  finishAuthLink,
+  readAuthLink,
+  safeNext,
+} from '../lib/auth.js';
 
-const params = new URLSearchParams(window.location.search);
-const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+const link = readAuthLink();
 
 const title = document.querySelector('[data-callback-title]');
 const message = document.querySelector('[data-callback-message]');
@@ -10,17 +17,14 @@ const loading = document.querySelector('[data-callback-loading]');
 const statusEl = document.querySelector('[data-callback-status]');
 const retry = document.querySelector('[data-callback-retry]');
 
-const next = safeNext(params.get('next') || hash.get('next'), appUrl('account.html'));
-
-const friendly = (raw) => {
-  if (/access_denied|cancelled|canceled/i.test(raw)) return 'Sign-in was cancelled.';
-  if (/expired|invalid/i.test(raw)) {
-    return 'That sign-in link has expired or was already used. Try again.';
-  }
-  return raw;
-};
+const next = safeNext(
+  link.query.get('next') || link.fragment.get('next'),
+  appUrl('account.html'),
+);
 
 function showError(text) {
+  cleanAuthUrl();
+
   if (loading) loading.hidden = true;
   if (title) title.textContent = 'That didn’t work.';
   if (message) message.hidden = true;
@@ -30,20 +34,17 @@ function showError(text) {
   }
   if (retry) {
     retry.hidden = false;
-    const link = retry.querySelector('a');
-    if (link) link.href = `${appUrl('login.html')}?next=${encodeURIComponent(next)}`;
+    const anchor = retry.querySelector('a');
+    if (anchor) {
+      anchor.href = `${appUrl('login.html')}?next=${encodeURIComponent(next)}`;
+      anchor.textContent = 'Sign in with your code';
+    }
   }
 }
 
 async function init() {
-  const urlError =
-    params.get('error_description') ||
-    hash.get('error_description') ||
-    params.get('error') ||
-    hash.get('error');
-
-  if (urlError) {
-    showError(friendly(urlError));
+  if (link.error) {
+    showError(authLinkError(link));
     return;
   }
 
@@ -52,17 +53,16 @@ async function init() {
     return;
   }
 
-  const { data, error } = await supabase.auth.getSession();
+  const { session } = await finishAuthLink(supabase, link);
 
-  if (error) {
-    showError(authErrorMessage(error));
+  if (!session) {
+    // A code link opened in a different browser has no PKCE verifier. That is
+    // the common expired-link case: say exactly what to do instead.
+    showError(EXPIRED_LINK_MESSAGE);
     return;
   }
 
-  if (!data.session) {
-    showError('We could not finish signing you in. The link may have expired.');
-    return;
-  }
+  cleanAuthUrl();
 
   if (title) title.textContent = 'You’re in.';
   if (message) message.textContent = 'Taking you to your account…';
