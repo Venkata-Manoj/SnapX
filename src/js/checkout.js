@@ -1,7 +1,7 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
-import { appUrl } from '../lib/auth.js';
+import { appUrl, hardSignOut } from '../lib/auth.js';
 import { readFunctionError } from '../lib/billing.js';
-import { loadRazorpay, themeColour } from '../lib/razorpay.js';
+import { brandLogo, loadRazorpay, themeColour } from '../lib/razorpay.js';
 import { pingExtension, requestPass } from '../extension-bridge.js';
 
 /**
@@ -143,7 +143,9 @@ async function startCheckout(plan, button) {
     restoreButtons();
 
     if (info.status === 401) {
-      goToLogin(plan);
+      // The account is gone or the JWT is no longer accepted. Clear it locally
+      // instead of leaving a signed-in shell that every call will reject.
+      await hardSignOut('ended');
       return;
     }
 
@@ -193,8 +195,9 @@ async function startCheckout(plan, button) {
   const checkout = new window.Razorpay({
     key,
     subscription_id: subscriptionId,
-    name: document.body.dataset.brand || 'SnapX',
-    description: `${PLAN_NAMES[plan]} plan, monthly`,
+    name: 'SnapX',
+    image: brandLogo(),
+    description: `SnapX ${PLAN_NAMES[plan]}`,
     prefill: { email: session?.user?.email || '' },
     theme: { color: themeColour() },
     handler: () => {

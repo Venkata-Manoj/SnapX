@@ -30,6 +30,7 @@ const link = readAuthLink();
 let pendingEmail = '';
 let cooldown = null;
 let secondsLeft = 0;
+let verifying = false;
 
 function setStatus(message, kind = '') {
   if (!statusEl) return;
@@ -105,6 +106,20 @@ function markCodeInvalid(invalid) {
   });
 }
 
+function codeComplete() {
+  return boxes.length === CODE_LENGTH && boxes.every((box) => box.value.length === 1);
+}
+
+/**
+ * Submit once the eighth digit is in place, whether it was typed or pasted.
+ * The `verifying` flag makes a second submit a no-op, so a fast paste cannot
+ * spend two sign-in attempts.
+ */
+function autoSubmit() {
+  if (verifying || !codeComplete()) return;
+  codeForm.requestSubmit();
+}
+
 // An old link can land here instead of the callback page. Finish it rather
 // than leaving a blank sign-in form, then clean the one-time parameters.
 if (link.hasAuthParams) {
@@ -131,6 +146,12 @@ if (link.hasAuthParams) {
 
     setStatus(EXPIRED_LINK_MESSAGE, 'error');
   })();
+}
+
+// Set by hardSignOut('ended') when the account is gone or the session failed
+// server-side. A normal sign-out never lands here.
+if (!link.hasAuthParams && params.get('ended') === '1') {
+  setStatus('Your session ended. Sign in again.');
 }
 
 async function sendCode(email, { resend = false } = {}) {
@@ -192,6 +213,8 @@ emailInput?.addEventListener('input', () => {
 
 codeForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (verifying) return;
+
   const token = boxes.map((box) => box.value).join('');
 
   if (token.length !== CODE_LENGTH) {
@@ -206,6 +229,7 @@ codeForm?.addEventListener('submit', async (event) => {
     return;
   }
 
+  verifying = true;
   markCodeInvalid(false);
   setBusy(verifyButton, true, 'Verifying…');
 
@@ -216,8 +240,14 @@ codeForm?.addEventListener('submit', async (event) => {
   });
 
   if (error) {
+    verifying = false;
     setBusy(verifyButton, false);
     markCodeInvalid(true);
+    // A wrong code is single-use; clear it so the next digit does not
+    // auto-submit a mixture of old and new digits.
+    boxes.forEach((box) => {
+      box.value = '';
+    });
     setStatus(authErrorMessage(error), 'error');
     boxes[0]?.focus();
     return;
@@ -235,6 +265,7 @@ resendButton?.addEventListener('click', () => {
 changeButton?.addEventListener('click', () => {
   stopCooldown();
   markCodeInvalid(false);
+  verifying = false;
   boxes.forEach((box) => {
     box.value = '';
   });
@@ -250,6 +281,8 @@ boxes.forEach((box, index) => {
     if (box.value && index < boxes.length - 1) {
       boxes[index + 1].focus();
     }
+
+    autoSubmit();
   });
 
   box.addEventListener('keydown', (event) => {
@@ -277,6 +310,7 @@ boxes.forEach((box, index) => {
       if (boxes[offset]) boxes[offset].value = digit;
     });
     boxes[Math.min(digits.length, boxes.length - 1)].focus();
+    autoSubmit();
   });
 });
 

@@ -54,17 +54,35 @@ async function fetchPass(iid) {
     body: { iid },
   });
 
-  if (error || typeof data?.token !== 'string' || !data.token.includes('.')) return null;
+  if (error) {
+    if (Number(error?.context?.status) === 401) {
+      const { hardSignOut } = await import('./lib/auth.js');
+      await hardSignOut('ended');
+    }
+    return null;
+  }
+
+  if (typeof data?.token !== 'string' || !data.token.includes('.')) return null;
   return data;
+}
+
+function publishResult(result) {
+  lastResult = result;
+  document.dispatchEvent(new CustomEvent(RESULT_EVENT, { detail: result }));
 }
 
 /**
  * Ask the server for a pass and hand it to the extension.
  *
  * A pass is sent when the page asked for a connection, when the extension says
- * its pass is missing or near expiry, or when the server plan differs from the
- * plan the extension is showing. That last case is what makes a payment,
- * cancellation or plan change converge without a reload.
+ * its pass is missing or near expiry, when the plan differs, or when the
+ * server's expiry differs by more than a minute. The last case is what makes a
+ * payment or a cancellation converge without a reload: cancelling removes the
+ * renewal grace, so the expiry moves even when the plan name does not.
+ *
+ * When nothing needs sending the page still gets a result built from the
+ * extension's hello. Silence used to look like a failed check and showed a red
+ * error on the account page.
  */
 async function sendPass({ connect = false, force = false } = {}) {
   if (!extension || !INSTALL_ID.test(extension.iid) || inFlight) return;
@@ -77,10 +95,23 @@ async function sendPass({ connect = false, force = false } = {}) {
     const data = await fetchPass(extension.iid);
     if (!data) return;
 
-    const changed = data.plan !== extension.plan;
-    if (!connect && !force && !extension.wantsPass && !changed) return;
+    const serverExp = Number(data.exp) || 0;
+    const planChanged = data.plan !== extension.plan;
+    const expiryDrift =
+      extension.exp > 0 && serverExp > 0 && Math.abs(serverExp - extension.exp) > 60;
+    const mustSend = connect || force || extension.wantsPass || planChanged || expiryDrift;
 
-    postToExtension({ type: 'pass', token: data.token, connect });
+    if (mustSend) {
+      postToExtension({ type: 'pass', token: data.token, connect });
+      return;
+    }
+
+    publishResult({
+      ok: true,
+      plan: extension.plan || data.plan,
+      exp: extension.exp || serverExp,
+      error: '',
+    });
   } catch {
     // Network or session failure: the extension keeps its last pass, and the
     // next hello tries again. Never log the token or the error payload.
@@ -116,20 +147,51 @@ window.addEventListener('message', (event) => {
   }
 
   if (data.type === 'pass-result') {
-    lastResult = {
+    publishResult({
       ok: Boolean(data.ok),
       plan: typeof data.plan === 'string' ? data.plan : '',
       exp: Number(data.exp) || 0,
       error: typeof data.error === 'string' ? data.error : '',
-    };
-
-    document.dispatchEvent(
-      new CustomEvent(RESULT_EVENT, {
-        detail: lastResult,
-      }),
-    );
+    });
   }
 });
+
+/**
+ * Tell the extension to drop the plan on this computer and wait for its
+ * acknowledgement. No extension means no reply, so the wait is always bounded.
+ */
+export function signOutExtension(timeout = 1500) {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+      resolve(ok);
+    };
+
+    const onMessage = (event) => {
+      if (!isFromExtension(event)) return;
+      if (event.data.type !== 'signout-result') return;
+      finish(Boolean(event.data.ok));
+    };
+
+    const timer = window.setTimeout(() => finish(false), timeout);
+    window.addEventListener('message', onMessage);
+    postToExtension({ type: 'signout' });
+  });
+}
+
+/** Drop per-page bridge state after a sign-out so a public page cannot reuse it. */
+export function clearBridgeState() {
+  extension = null;
+  inFlight = false;
+  lastAutoSend = 0;
+  lastResult = null;
+  forceNextSend = false;
+}
 
 /** True once the extension has said hello on this page. */
 export function extensionReady() {

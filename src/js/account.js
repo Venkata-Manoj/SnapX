@@ -1,12 +1,20 @@
 import { supabase } from '../lib/supabase.js';
-import { appUrl, authErrorMessage, displayName, formatDate, providerName, setAvatar } from '../lib/auth.js';
+import {
+  appUrl,
+  displayName,
+  formatDate,
+  hardSignOut,
+  providerName,
+  setAvatar,
+  validateSession,
+  watchAuth,
+} from '../lib/auth.js';
 import { formatMoney, planName, readFunctionError } from '../lib/billing.js';
-import { loadRazorpay, themeColour } from '../lib/razorpay.js';
+import { brandLogo, loadRazorpay, themeColour } from '../lib/razorpay.js';
 import { extensionReady, lastPassResult, pingExtension } from '../extension-bridge.js';
 
 const loading = document.querySelector('[data-account-loading]');
 const body = document.querySelector('[data-account-body]');
-const deletedPanel = document.querySelector('[data-account-deleted]');
 const statusEl = document.querySelector('[data-account-status]');
 
 const avatar = document.querySelector('[data-account-avatar]');
@@ -32,6 +40,7 @@ const extensionPanel = document.querySelector('[data-extension-connect]');
 const extensionIdle = document.querySelector('[data-extension-idle]');
 const extensionConnecting = document.querySelector('[data-extension-connecting]');
 const extensionConnected = document.querySelector('[data-extension-connected]');
+const extensionAbsent = document.querySelector('[data-extension-absent]');
 const extensionError = document.querySelector('[data-extension-error]');
 const extensionRetry = document.querySelector('[data-extension-retry]');
 
@@ -122,9 +131,13 @@ function renderPlan(row) {
     planBadge.textContent = name;
     planBadge.classList.toggle('plan-badge--paid', paid);
   }
+  // A Free row in `created` is an abandoned checkout, not a subscription
+  // waiting for payment: the account is on Free and nothing is owed.
+  const shownStatus = !paid && status === 'created' ? 'active' : status;
+
   if (planStatus) {
     planStatus.textContent =
-      STATUS_NAMES[status] || status.charAt(0).toUpperCase() + status.slice(1);
+      STATUS_NAMES[shownStatus] || shownStatus.charAt(0).toUpperCase() + shownStatus.slice(1);
   }
 
   if (planUpgrade) planUpgrade.hidden = paid;
@@ -309,8 +322,9 @@ async function startFutureCheckout(target, data) {
   const checkout = new window.Razorpay({
     key,
     subscription_id: subscriptionId,
-    name: document.body.dataset.brand || 'SnapX',
-    description: `${planName(target)} plan, monthly`,
+    name: 'SnapX',
+    image: brandLogo(),
+    description: `SnapX ${planName(target)}`,
     prefill: { email: user?.email || '' },
     theme: { color: themeColour() },
     handler: () => {
@@ -373,7 +387,7 @@ async function switchPlan(target) {
     const info = await readFunctionError(error);
 
     if (info.status === 401) {
-      window.location.assign(loginUrl());
+      await hardSignOut('ended');
       return;
     }
 
@@ -436,7 +450,7 @@ async function cancelPlan() {
     const info = await readFunctionError(error);
 
     if (info.status === 401) {
-      window.location.assign(loginUrl());
+      await hardSignOut('ended');
       return;
     }
 
@@ -495,7 +509,7 @@ async function deleteAccount() {
     const info = await readFunctionError(error);
 
     if (info.status === 401) {
-      window.location.assign(loginUrl());
+      await hardSignOut('ended');
       return;
     }
 
@@ -508,21 +522,9 @@ async function deleteAccount() {
     return;
   }
 
-  // The auth user no longer exists; clear the local session too.
-  try {
-    await supabase.auth.signOut({ scope: 'local' });
-  } catch {
-    // The session is already invalid.
-  }
-
-  if (dialog?.open) dialog.close();
-  if (body) body.hidden = true;
-  setStatus('');
-
-  if (deletedPanel) {
-    deletedPanel.hidden = false;
-    deletedPanel.focus();
-  }
+  // The server confirmed the delete. Tell the extension while this page still
+  // has a session, clear the local token, then leave the account view.
+  await hardSignOut('deleted');
 }
 
 manageButton?.addEventListener('click', openManage);
@@ -579,15 +581,8 @@ dialog?.addEventListener('click', (event) => {
 
 signOutButton?.addEventListener('click', async () => {
   signOutButton.disabled = true;
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    signOutButton.disabled = false;
-    setStatus(authErrorMessage(error), 'error');
-    return;
-  }
-
-  window.location.assign(appUrl(''));
+  setStatus('Signing out…');
+  await hardSignOut('user');
 });
 
 function showExtension(state, message = '') {
@@ -595,6 +590,7 @@ function showExtension(state, message = '') {
     ['idle', extensionIdle],
     ['connecting', extensionConnecting],
     ['connected', extensionConnected],
+    ['absent', extensionAbsent],
     ['error', extensionError],
   ];
 
@@ -642,9 +638,6 @@ function initExtensionConnect() {
   let pingTimer = 0;
   let bound = false;
 
-  const requested = () =>
-    new URLSearchParams(window.location.search).get('connect') === 'extension';
-
   const clearTimers = () => {
     window.clearTimeout(helloTimer);
     window.clearTimeout(resultTimer);
@@ -654,11 +647,9 @@ function initExtensionConnect() {
   const noResult = () =>
     showExtension('error', 'The plan check did not arrive. Reload the page and try again.');
 
-  const notInstalled = () =>
-    showExtension(
-      'error',
-      "SnapX isn't installed in this Chrome. Install it, then reload this page.",
-    );
+  // No hello is a normal state, not a failure: the visitor may not have the
+  // extension, or the content script may still be loading.
+  const notDetected = () => showExtension('absent');
 
   const startResultTimer = () => {
     window.clearTimeout(resultTimer);
@@ -681,15 +672,12 @@ function initExtensionConnect() {
 
   const start = ({ retry = false } = {}) => {
     clearTimers();
+    showExtension('connecting');
 
     if (extensionReady()) {
-      showExtension('connecting');
       startResultTimer();
-    } else if (requested() || retry) {
-      showExtension('connecting');
-      helloTimer = window.setTimeout(notInstalled, 3000);
     } else {
-      showExtension('idle');
+      helloTimer = window.setTimeout(notDetected, 3000);
     }
 
     // A retry is a deliberate user action: force the pass instead of letting
@@ -720,32 +708,15 @@ function initExtensionConnect() {
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) start({ retry: true });
     });
-    window.addEventListener('popstate', () => {
-      if (/\/account(?:\.html)?\/?$/.test(window.location.pathname)) start({ retry: true });
-    });
-    window.addEventListener('hashchange', () => {
-      if (/\/account(?:\.html)?\/?$/.test(window.location.pathname)) start({ retry: true });
-    });
+    window.addEventListener('popstate', () => start({ retry: true }));
+    window.addEventListener('hashchange', () => start({ retry: true }));
   };
 
   bind();
 
   const recent = lastPassResult();
-  if (recent) {
-    showPassResult(recent);
-  } else if (extensionReady()) {
-    showExtension('connecting');
-    startResultTimer();
-  } else if (requested()) {
-    showExtension('connecting');
-    helloTimer = window.setTimeout(notInstalled, 3000);
-  } else {
-    showExtension('idle');
-  }
-
-  // After the listeners above exist, never before. The old module-load ping
-  // ran before this listener and was the reason a one-shot hello could vanish.
-  ping();
+  if (recent) showPassResult(recent);
+  else start();
 }
 
 async function init() {
@@ -755,21 +726,26 @@ async function init() {
     return;
   }
 
-  const { data, error } = await supabase.auth.getSession();
+  // The loading panel stays up until the Auth server has confirmed the stored
+  // session. No name, email or plan is rendered before that answer.
+  watchAuth();
+  const state = await validateSession();
 
-  if (error || !data.session) {
+  if (state.status === 'ended') return;
+
+  if (!state.user) {
     window.location.replace(loginUrl());
     return;
   }
 
-  renderUser(data.session.user);
+  renderUser(state.user);
 
   if (loading) loading.hidden = true;
   if (body) body.hidden = false;
 
   initExtensionConnect();
 
-  await loadPlan(data.session.user);
+  await loadPlan(state.user);
 }
 
 init();

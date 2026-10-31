@@ -141,12 +141,6 @@
   margin-top: 0;
 }
 
-.account-deleted {
-  max-width: 640px;
-  margin-inline: auto;
-  border-color: rgba(47, 93, 69, 0.35);
-}
-
 .danger-zone {
   border-color: rgba(200, 67, 42, 0.35);
 }

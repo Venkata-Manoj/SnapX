@@ -1,3 +1,5 @@
+import { appUrl } from './auth.js';
+
 /**
  * Razorpay Checkout loader, shared by the pricing and account pages.
  *
@@ -6,6 +8,14 @@
  */
 
 let loader = null;
+
+/**
+ * Razorpay draws its header inside an iframe, so a relative image path cannot
+ * resolve. Always hand it the absolute URL, including any deploy base.
+ */
+export function brandLogo() {
+  return new URL(appUrl('brand/snapx-logo-256.png'), window.location.origin).href;
+}
 
 export function loadRazorpay() {
   if (typeof window.Razorpay === 'function') return Promise.resolve();

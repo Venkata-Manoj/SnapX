@@ -1,5 +1,5 @@
 import { supabase, authConfigured } from '../lib/supabase.js';
-import { appUrl, displayName, providerName, setAvatar } from '../lib/auth.js';
+import { displayName, hardSignOut, setAvatar, validateSession, watchAuth } from '../lib/auth.js';
 
 /**
  * Loaded after idle so auth never blocks the first paint. The markup starts
@@ -78,26 +78,13 @@ export function initHeaderAuth() {
   });
 
   signOut?.addEventListener('click', async () => {
-    const original = signOut.textContent;
     signOut.disabled = true;
     signOut.textContent = 'Signing out…';
     setOpen(false);
 
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      signOut.disabled = false;
-      signOut.textContent = 'Sign out failed — retry';
-      setOpen(true);
-      console.warn('[SnapX] Sign out failed:', error.message);
-      return;
-    }
-
-    signOut.textContent = original;
-    signOut.disabled = false;
-    if (/account\.html$/.test(window.location.pathname)) {
-      window.location.assign(appUrl(''));
-    }
+    // Clears the local session even when the server refuses (a deleted user)
+    // and tells the extension to drop the plan before the page leaves.
+    await hardSignOut('user');
   });
 
   const render = (session) => {
@@ -126,6 +113,19 @@ export function initHeaderAuth() {
     }
   };
 
-  supabase.auth.getSession().then(({ data }) => render(data.session));
-  supabase.auth.onAuthStateChange((_event, session) => render(session));
+  // The stored session is not proof: a deleted user keeps a valid-looking JWT
+  // until the Auth server is asked. The avatar appears only after that answer.
+  watchAuth();
+  validateSession().then((state) => {
+    if (state.status === 'ended') return;
+    render(state.session);
+  });
+
+  // INITIAL_SESSION is the same stored value validateSession is checking, so
+  // it must not reveal the avatar early. A token refresh and a fresh sign-in
+  // have both already round-tripped to the Auth server.
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'INITIAL_SESSION') return;
+    render(session);
+  });
 }
