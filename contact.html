@@ -62,12 +62,7 @@
 
       <h2>Who we are</h2>
       <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}.</p>
-      <!-- @if HAS_POSTAL_ADDRESS -->
-      <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
-      <!-- @endif -->
-      <!-- @ifnot HAS_POSTAL_ADDRESS -->
-      <p class="small muted">Postal address: to be added before launch.</p>
-      <!-- @endif -->
+      <p><strong>Registered address:</strong> {{OPERATOR_POSTAL_ADDRESS}}</p>
       <!-- @if PHONE -->
       <p>Phone: {{PHONE}}</p>
       <!-- @endif -->

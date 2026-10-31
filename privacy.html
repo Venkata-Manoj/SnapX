@@ -121,12 +121,7 @@
 
       <h2>Contact</h2>
       <p>{{BRAND_NAME}} is run by {{OPERATOR_NAME}}, {{OPERATOR_TYPE}}, {{CITY}}.</p>
-      <!-- @if HAS_POSTAL_ADDRESS -->
-      <p>{{OPERATOR_POSTAL_ADDRESS}}</p>
-      <!-- @endif -->
-      <!-- @ifnot HAS_POSTAL_ADDRESS -->
-      <p class="small muted">Postal address: to be added before launch.</p>
-      <!-- @endif -->
+      <p><strong>Registered address:</strong> {{OPERATOR_POSTAL_ADDRESS}}</p>
       <p>Privacy questions: <a href="mailto:{{PRIVACY_EMAIL}}">{{PRIVACY_EMAIL}}</a>. General contact: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.</p>
     </div>
   </div>
