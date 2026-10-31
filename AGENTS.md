@@ -41,8 +41,8 @@ npm run check:placeholders
 - `npm run check:placeholders` fails on any surviving `{{TOKEN}}` or `@@BASE@@`
   in `dist/`. Do not weaken it or add a literal token to make a build pass.
 - Empty URLs remove their element; they never leave a dead link. The postal
-  address still defaults to "to be added" and triggers a build warning until the
-  owner fills it; optional download, store and press links stay empty until
+  address is required: `requiredConfig()` fails the build if it is empty or
+  still a placeholder; optional download, store and press links stay empty until
   release.
 - Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` belong in the
   browser bundle. Never add a secret or service-role key to `.env`, Vercel or

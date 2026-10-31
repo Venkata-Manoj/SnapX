@@ -78,7 +78,6 @@ function brandHtml() {
           ...SITE,
           HAS_PRESS_KIT: hasPressKit,
           HAS_PROJECT_LINKS: hasPressKit,
-          HAS_POSTAL_ADDRESS: Boolean(SITE.OPERATOR_POSTAL_ADDRESS),
           HAS_PROFILE: Boolean(SITE.GITHUB_PROFILE_URL),
           HAS_PROVIDER_LOGIN: ['google', 'microsoft', 'apple'].some((provider) =>
             signin.has(provider),
@@ -231,6 +230,26 @@ ${pages.map((page) => `  <url>\n    <loc>${url(page)}</loc>\n  </url>`).join('\n
   };
 }
 
+/**
+ * The registered postal address is a legal disclosure, not a warning: a build
+ * without it must not ship.
+ */
+function requiredConfig() {
+  return {
+    name: 'snapx-required-config',
+    apply: 'build',
+    buildStart() {
+      const address = String(SITE.OPERATOR_POSTAL_ADDRESS || '').trim();
+      if (!address || /to be added/i.test(address)) {
+        throw new Error(
+          'site.config.js: OPERATOR_POSTAL_ADDRESS must be a real registered address. ' +
+            'The build cannot ship Contact, Privacy and Terms without it.',
+        );
+      }
+    },
+  };
+}
+
 function configWarning() {
   return {
     name: 'snapx-config-warning',
@@ -249,7 +268,7 @@ export default defineConfig({
   base: normalizeBase(process.env.BASE_PATH),
   // No SPA fallback: unknown paths must reach the real 404, as they do on Vercel.
   appType: 'mpa',
-  plugins: [brandHtml(), generatedFiles(), configWarning()],
+  plugins: [brandHtml(), generatedFiles(), requiredConfig(), configWarning()],
   preview: {
     // Allows a temporary Cloudflare quick-tunnel share of the built site.
     allowedHosts: ['.trycloudflare.com'],

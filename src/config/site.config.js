@@ -5,8 +5,8 @@
  * at build time, so a rename is a one-file change. Flags are read by
  * <!-- @if FLAG --> â€¦ <!-- @endif --> blocks in the HTML.
  *
- * Optional links and addresses are omitted when empty. `npm run build` prints a
- * warning only for required values that still look like placeholders.
+ * Optional links are omitted when empty. The registered postal address is
+ * mandatory: `npm run build` fails if it is empty or still a placeholder.
  */
 
 export const SITE = {
@@ -27,7 +27,7 @@ export const SITE = {
   OPERATOR_NAME: 'B V Manoj',
   OPERATOR_TYPE: 'an individual (sole proprietor)',
   CITY: 'Chennai, Tamil Nadu, India',
-  OPERATOR_POSTAL_ADDRESS: '', // required before launch; the build warns until set
+  OPERATOR_POSTAL_ADDRESS: 'Komarolu, Prakasam District, Andhra Pradesh 523373, India',
   PHONE: '', // optional; rendered only when set
   GRIEVANCE_OFFICER_NAME: 'B V Manoj',
   GRIEVANCE_EMAIL: 'call.snapx@gmail.com',
@@ -46,7 +46,7 @@ export const SITE = {
   PAYMENTS_ENABLED: true, // Razorpay test mode; live keys are Supabase secrets
 
   /* ---------- Product facts ---------- */
-  VERSION: '1.5.0',
+  VERSION: '1.5.1',
   CHROME_MIN_VERSION: '116',
   PAYMENT_PROVIDER: 'Razorpay',
   EMAIL_PROVIDER_NAME: 'Google (Gmail SMTP)',
