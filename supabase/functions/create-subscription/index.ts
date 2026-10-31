@@ -1,4 +1,11 @@
-import { json, methodNotAllowed, preflight, unauthorized } from '../_shared/http.ts';
+import {
+  authUnavailable,
+  json,
+  methodNotAllowed,
+  preflight,
+  sessionInvalid,
+  unauthorized,
+} from '../_shared/http.ts';
 import { serviceClient, userFromRequest } from '../_shared/clients.ts';
 import { checkoutGate } from '../_shared/checkout.ts';
 import { planIdFor, razorpayKeyId, razorpayRequest } from '../_shared/razorpay.ts';
@@ -12,8 +19,12 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return methodNotAllowed(req);
 
   try {
-    const { user } = await userFromRequest(req);
-    if (!user) return unauthorized(req);
+    const { user, reason } = await userFromRequest(req);
+    if (!user) {
+      if (reason === 'missing_token') return unauthorized(req);
+      if (reason === 'unavailable') return authUnavailable(req);
+      return sessionInvalid(req);
+    }
 
     let body: unknown;
     try {

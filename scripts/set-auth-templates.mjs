@@ -31,11 +31,11 @@ const template = (name) =>
   readFileSync(new URL(`supabase/templates/${name}`, ROOT), 'utf8');
 
 const payload = {
-  mailer_subjects_confirmation: 'Your SnapX code',
+  mailer_subjects_confirmation: 'Your SnapX sign-in code',
   mailer_templates_confirmation_content: template('confirm-signup.html'),
-  mailer_subjects_magic_link: 'Your SnapX code',
+  mailer_subjects_magic_link: 'Your SnapX sign-in code',
   mailer_templates_magic_link_content: template('magic-link.html'),
-  mailer_subjects_reauthentication: 'Your SnapX code',
+  mailer_subjects_reauthentication: 'Your SnapX sign-in code',
   mailer_templates_reauthentication_content: template('reauthentication.html'),
   mailer_otp_length: 8,
   mailer_otp_exp: 600,

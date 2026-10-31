@@ -10,8 +10,8 @@ code. All three templates below are the same code-only body.
 | Magic Link | `mailer_subjects_magic_link` | `mailer_templates_magic_link_content` | `magic-link.html` |
 | Reauthentication | `mailer_subjects_reauthentication` | `mailer_templates_reauthentication_content` | `reauthentication.html` |
 
-Every subject is `Your SnapX code`. Every body contains `{{ .Token }}` and no
-`{{ .ConfirmationURL }}` and no `<a>` element.
+Every subject is `Your SnapX sign-in code`. Every body contains `{{ .Token }}`
+and no `{{ .ConfirmationURL }}` and no `<a>` element.
 
 ## Apply with the Management API
 
@@ -28,11 +28,11 @@ The script PATCHes:
 
 ```json
 {
-  "mailer_subjects_confirmation": "Your SnapX code",
+  "mailer_subjects_confirmation": "Your SnapX sign-in code",
   "mailer_templates_confirmation_content": "<contents of confirm-signup.html>",
-  "mailer_subjects_magic_link": "Your SnapX code",
+  "mailer_subjects_magic_link": "Your SnapX sign-in code",
   "mailer_templates_magic_link_content": "<contents of magic-link.html>",
-  "mailer_subjects_reauthentication": "Your SnapX code",
+  "mailer_subjects_reauthentication": "Your SnapX sign-in code",
   "mailer_templates_reauthentication_content": "<contents of reauthentication.html>",
   "mailer_otp_length": 8,
   "mailer_otp_exp": 600
@@ -48,12 +48,12 @@ changing them; the script prints them.
 If the Management API cannot be used:
 
 1. Authentication → Emails → Templates.
-2. **Confirm signup**: subject `Your SnapX code`; replace the body with
+2. **Confirm signup**: subject `Your SnapX sign-in code`; replace the body with
    `supabase/templates/confirm-signup.html`.
-3. **Magic Link**: subject `Your SnapX code`; replace the body with
+3. **Magic Link**: subject `Your SnapX sign-in code`; replace the body with
    `supabase/templates/magic-link.html`.
-4. **Reauthentication**: subject `Your SnapX code`; replace the body with
-   `supabase/templates/reauthentication.html`.
+4. **Reauthentication**: subject `Your SnapX sign-in code`; replace the body
+   with `supabase/templates/reauthentication.html`.
 5. Authentication → Providers → Email → Email OTP: set **Email OTP length** to
    `8` and **Email OTP expiry** to `600` seconds. Save.
 6. Send a test email to a new address and a returning address. Both must show

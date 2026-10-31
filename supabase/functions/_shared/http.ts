@@ -60,3 +60,20 @@ export function methodNotAllowed(req: Request): Response {
 export function unauthorized(req: Request): Response {
   return json(req, { error: 'unauthorized', message: 'Sign in to continue.' }, 401);
 }
+
+/**
+ * A token was sent, but the Auth server no longer knows the user. This is the
+ * deleted-account case: the browser must clear its stored session.
+ */
+export function sessionInvalid(req: Request): Response {
+  return json(req, { error: 'session_invalid' }, 401);
+}
+
+/** Auth could not be reached. Do not tell the browser its session is dead. */
+export function authUnavailable(req: Request): Response {
+  return json(
+    req,
+    { error: 'auth_unavailable', message: 'Try again in a moment.' },
+    503,
+  );
+}

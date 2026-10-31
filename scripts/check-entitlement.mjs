@@ -26,7 +26,7 @@ const ENV_FILE = new URL('../supabase/.env.secrets', import.meta.url);
 const SITE_ENV = new URL('../.env', import.meta.url);
 const CLI = join('node_modules', '.bin', process.platform === 'win32' ? 'supabase.cmd' : 'supabase');
 
-/** keys/pass-public.hex in the SnapX 1.5.0 build. Public by definition. */
+/** keys/pass-public.hex in the shipped SnapX extension build. Public by definition. */
 const EXTENSION_PUBLIC_KEY =
   'd8451c06b55376d9bd82a3bc1dec21f899be0533102e7972ea50b25922c5126a';
 

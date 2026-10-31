@@ -34,7 +34,14 @@ export async function userFromRequest(
   });
 
   const { data, error } = await client.auth.getUser(token);
-  if (error || !data?.user) return { user: null, client: null, reason: 'invalid_token' };
+  if (data?.user) return { user: data.user, client };
 
-  return { user: data.user, client };
+  // A missing/zero status, a 5xx or a rate limit means Auth itself is having a
+  // bad moment. Only an explicit 401/403 is proof the account is gone.
+  const status = Number((error as { status?: number } | null)?.status ?? 0);
+  const reason = status === 0 || status === 429 || status >= 500
+    ? 'unavailable'
+    : 'invalid_token';
+
+  return { user: null, client: null, reason };
 }
